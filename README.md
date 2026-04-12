@@ -1,4 +1,4 @@
-# iWorks Novel Toolkit
+# Qbook - 番茄小说工具箱
 
 一个基于 Web 的小说排行榜数据扫描与分析工具，支持番茄小说、起点中文网的实时榜单追踪和 AI 智能分析。
 
@@ -38,22 +38,30 @@
 
 ## 快速开始
 
-### 环境要求
-- Python 3.8+
-- 依赖库：`requests`, `Pillow`, `numpy`, `fonttools`
+### 方式一：下载 exe（推荐小白用户）
 
-### 安装
+从 [Releases](https://github.com/3421013896/Qbook/releases) 页面下载 `Qbook.exe`，双击即可运行，自动打开浏览器。
+
+> 无需安装 Python，无需任何配置，双击就用。
+
+### 方式二：从源码运行
+
+#### 环境要求
+- Python 3.8+
+- 依赖库：`jieba`, `Pillow`, `numpy`, `fonttools`
+
+#### 安装
 
 ```bash
 # 克隆仓库
-git clone https://github.com/your-username/tomato-toolkit.git
-cd tomato-toolkit
+git clone https://github.com/3421013896/Qbook.git
+cd Qbook
 
 # 安装 Python 依赖
-pip install requests Pillow numpy fonttools
+pip install jieba Pillow numpy fonttools
 ```
 
-### 启动
+#### 启动
 
 **Windows:**
 ```bash
@@ -85,10 +93,11 @@ python server.py
 ## 项目结构
 
 ```
-tomato-toolkit/
+Qbook/
 ├── toolkit.html      # 前端（单文件应用，Tailwind CSS）
 ├── server.py         # 后端（Python 多线程 HTTP 服务）
 ├── start.bat         # Windows 启动脚本
+├── build.bat         # 打包脚本（生成 Qbook.exe）
 ├── LICENSE           # MIT 开源协议
 └── README.md
 ```

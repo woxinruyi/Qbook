@@ -11,6 +11,11 @@ __pycache__/
 .venv/
 venv/
 
+# PyInstaller 构建产物
+build/
+dist/
+*.spec
+
 # 环境与编辑器
 .env
 .vscode/

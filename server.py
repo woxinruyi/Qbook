@@ -29,7 +29,13 @@ import jieba.analyse
 # ==================== 配置 ====================
 PORT = 8765
 HOST = '127.0.0.1'
-BASE_DIR = Path(__file__).parent
+# PyInstaller 打包后，资源文件在 sys._MEIPASS；开发时用 __file__ 所在目录
+if getattr(sys, 'frozen', False):
+    _RESOURCE_DIR = Path(sys._MEIPASS)
+    BASE_DIR = Path(sys.executable).parent
+else:
+    _RESOURCE_DIR = Path(__file__).parent
+    BASE_DIR = Path(__file__).parent
 CACHE_DIR = BASE_DIR / 'cache'
 CACHE_DIR.mkdir(exist_ok=True)
 SNAPSHOT_DIR = BASE_DIR / 'snapshots'
@@ -681,7 +687,7 @@ class RankScraper:
         from PIL import Image, ImageDraw, ImageFont
         from fontTools.ttLib import TTFont
 
-        cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cache')
+        cache_dir = str(CACHE_DIR)
         decoder_cache = os.path.join(cache_dir, 'pua_decoder.json')
         font_cache = os.path.join(cache_dir, 'fanqie_font.woff2')
         sourcehan_cache = os.path.join(cache_dir, 'SourceHanSansSC-Normal.otf')
@@ -828,7 +834,7 @@ class RankScraper:
                 return cls._pua_decoder or {}
 
             # 先尝试直接从缓存文件加载（最快路径）
-            cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cache')
+            cache_dir = str(CACHE_DIR)
             decoder_cache = os.path.join(cache_dir, 'pua_decoder.json')
             if os.path.exists(decoder_cache):
                 try:
@@ -1961,7 +1967,7 @@ class ToolkitHandler(BaseHTTPRequestHandler):
         path = parsed.path
 
         if path == '/' or path == '':
-            self.send_html(BASE_DIR / 'toolkit.html')
+            self.send_html(_RESOURCE_DIR / 'toolkit.html')
 
         elif path == '/api/rankings/qidian':
             params = parse_qs(parsed.query)
