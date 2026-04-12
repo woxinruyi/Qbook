@@ -1,0 +1,3324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>iWorks</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            paper: {
+              50: '#fdfcfa', 100: '#f9f7f3', 200: '#f3efe8', 300: '#e8e2d9',
+              400: '#d4cbc0', 500: '#b8ae9f', 600: '#9c8f7e', 700: '#7a6f5f',
+              800: '#564a3a', 900: '#3d342a',
+            },
+            ink: {
+              50: '#f6f6f6', 100: '#e7e7e7', 200: '#d1d1d1', 300: '#b0b0b0',
+              400: '#888888', 500: '#6d6d6d', 600: '#5d5d5d', 700: '#4f4f4f',
+              800: '#454545', 900: '#3d3d3d', 950: '#1a1a1a',
+            },
+            tomato: {
+              50: '#fff1ed', 100: '#ffe0d6', 200: '#ffc7b4', 300: '#ffa585',
+              400: '#ff7a50', 500: '#ff5722', 600: '#e64a19', 700: '#bf3c14',
+              800: '#9c3217', 900: '#802c17',
+            },
+          },
+          fontFamily: {
+            serif: ['"Noto Serif SC"', 'Georgia', 'serif'],
+            sans: ['"Noto Sans SC"', 'Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #f9f7f3;
+      color: #3d3d3d;
+      min-height: 100vh;
+      transition: background 0.4s ease, color 0.4s ease;
+    }
+    /* ==================== 暗黑模式 ==================== */
+    html.dark body { background: #141414; color: #e0e0e0; }
+    html.dark .bg-white, html.dark .bg-white\/50, html.dark .bg-white\/90,
+    html.dark .bg-white\/80, html.dark .bg-white\/70 { background: #1e1e1e !important; }
+    html.dark .bg-paper-100, html.dark .bg-paper-50 { background: #141414 !important; }
+    html.dark .bg-paper-200 { background: #2a2a2a !important; }
+    html.dark .border-paper-200, html.dark .border-paper-200\/60 { border-color: #333 !important; }
+    html.dark .border-paper-300 { border-color: #444 !important; }
+    html.dark .text-ink-900, html.dark .text-ink-800, html.dark .text-ink-700,
+    html.dark .text-ink-600 { color: #e8e8e8 !important; }
+    html.dark .text-ink-500, html.dark .text-ink-400 { color: #999 !important; }
+    html.dark .text-ink-300 { color: #666 !important; }
+    html.dark .text-ink-200 { color: #555 !important; }
+    html.dark .bg-tomato-50, html.dark .from-tomato-50 { background: rgba(255,87,34,0.08) !important; }
+    html.dark .bg-tomato-100, html.dark .to-tomato-100 { background: rgba(255,87,34,0.15) !important; }
+    html.dark .hover\:bg-paper-200:hover { background: #333 !important; }
+    html.dark .shadow-sm { box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important; }
+    html.dark .shadow-lg { box-shadow: 0 10px 25px rgba(0,0,0,0.3) !important; }
+    html.dark input, html.dark textarea, html.dark select {
+      background: #2a2a2a !important; color: #e0e0e0 !important;
+      border-color: #444 !important;
+    }
+    html.dark input::placeholder, html.dark textarea::placeholder { color: #666 !important; }
+    html.dark .hover\:shadow-tomato-100\/50:hover { box-shadow: 0 10px 25px rgba(255,87,34,0.1) !important; }
+    /* 暗色滚动条 */
+    html.dark ::-webkit-scrollbar-thumb { background: #444; }
+    html.dark ::-webkit-scrollbar-thumb:hover { background: #555; }
+    /* 暗色首页背景 */
+    html.dark .home-bg { background: #0a0a0a !important; }
+    html.dark .home-orb-1 { background: rgba(255,87,34,0.08) !important; }
+    html.dark .home-orb-2 { background: rgba(251,191,36,0.06) !important; }
+    html.dark .text-transparent { -webkit-text-fill-color: transparent; }
+    /* 暗色 W 光晕 */
+    html.dark .hero-sun-glow { text-shadow: 0 0 30px rgba(255,87,34,0.4), 0 0 60px rgba(255,87,34,0.15); }
+    /* 暗色背景光晕 */
+    html.dark [style*="hero-glow"] { filter: brightness(0.6); }
+    /* 暗色 Chart.js */
+    html.dark .chart-container { background: transparent !important; }
+    /* 暗色 badge/tag */
+    html.dark .bg-amber-50, html.dark .from-amber-50 { background: rgba(251,191,36,0.08) !important; }
+    html.dark .to-orange-100 { background: rgba(251,146,60,0.15) !important; }
+    /* 进度条背景 */
+    html.dark .progress-shimmer { opacity: 0.85; }
+    .text-indent-2em { text-indent: 2em; }
+
+    /* 自定义滚动条 */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d4cbc0; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #b8ae9f; }
+
+    /* 进度条动画 */
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .progress-shimmer {
+      background: linear-gradient(90deg, #ff7a50 25%, #ffb74d 50%, #ff7a50 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s ease-in-out infinite;
+    }
+
+    /* 卡片悬浮效果 */
+    .card-hover {
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .card-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px -5px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.05);
+    }
+
+    /* 番茄反爬字体 - PUA 字符会映射到该字体的字形 */
+    .fanqie-font {
+      font-family: 'DNMrHsV173Pd4pgy', 'Noto Sans SC', 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif;
+    }
+
+    .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+    /* 标签页过渡 */
+    .tab-content { transition: opacity 0.3s ease, transform 0.3s ease; }
+    .tab-entering { opacity: 0; transform: translateY(10px); }
+
+    /* 拖拽上传区域 */
+    .drop-zone {
+      border: 2px dashed #d4cbc0;
+      transition: all 0.3s ease;
+    }
+    .drop-zone.drag-over {
+      border-color: #ff5722;
+      background: #fff1ed;
+      transform: scale(1.01);
+    }
+
+    /* 加载动画 */
+    @keyframes pulse-dot {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+    .loading-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
+    .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    /* ========== 首页入场动画 ========== */
+    @keyframes hero-rise {
+      from { opacity: 0; transform: translateY(24px); filter: blur(4px); }
+      to   { opacity: 1; transform: translateY(0);    filter: blur(0); }
+    }
+    @keyframes hero-fade {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes hero-scale {
+      from { opacity: 0; transform: scale(0.92); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    @keyframes hero-glow {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.05); }
+    }
+    @keyframes orb-float {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(20px, -15px); }
+    }
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(200%); }
+    }
+
+    /* 首页背景 */
+    .home-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 40%, rgba(251,146,60,0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 50% at 20% 80%, rgba(239,68,68,0.04) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 80% 20%, rgba(251,191,36,0.05) 0%, transparent 60%),
+        #f9f7f3;
+      pointer-events: none;
+    }
+    .home-orb-1 {
+      position: fixed;
+      top: 10%;
+      left: 8%;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(251,146,60,0.10) 0%, transparent 70%);
+      filter: blur(80px);
+      animation: orb-float 10s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 0;
+      will-change: transform;
+    }
+    .home-orb-2 {
+      position: fixed;
+      bottom: 5%;
+      right: 5%;
+      width: 350px;
+      height: 350px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(239,68,68,0.07) 0%, transparent 70%);
+      filter: blur(80px);
+      animation: orb-float 13s ease-in-out infinite reverse;
+      pointer-events: none;
+      z-index: 0;
+      will-change: transform;
+    }
+    .home-shimmer-line {
+      position: absolute;
+      top: 38%;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(251,146,60,0.2), transparent);
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .home-shimmer-line::after {
+      content: '';
+      display: block;
+      width: 30%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+      animation: shimmer 5s ease-in-out infinite;
+    }
+
+    /* iWorks 字母轨道动画 */
+    #hero-letters {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.04em;
+      min-height: 90px;
+    }
+    .hero-individual-letter {
+      display: inline-block;
+      opacity: 0;
+      will-change: transform, opacity;
+    }
+    .hero-individual-letter.floating {
+      opacity: 1 !important;
+      transform: none !important;
+      animation: letter-breathe 4s ease-in-out infinite;
+    }
+    @keyframes letter-breathe {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+    /* W 太阳光晕 */
+    .hero-sun-glow {
+      text-shadow: 0 0 30px rgba(234,88,12,0.3), 0 0 60px rgba(234,88,12,0.1);
+    }
+    .brand-letter-i { padding-right: 0.12em; }
+    .hero-rise {
+      opacity: 0;
+      animation: hero-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .hero-fade {
+      opacity: 0;
+      animation: hero-fade 0.8s ease forwards;
+    }
+    .hero-scale {
+      opacity: 0;
+      animation: hero-scale 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* 报告样式 */
+    .report-content h1 { font-size: 1.5rem; font-weight: 700; color: #3d342a; margin: 1.5rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid #e8e2d9; }
+    .report-content h2 { font-size: 1.25rem; font-weight: 600; color: #564a3a; margin: 1.25rem 0 0.5rem; padding-left: 0.75rem; border-left: 4px solid #ff5722; }
+    .report-content h3 { font-size: 1.1rem; font-weight: 600; color: #7a6f5f; margin: 1rem 0 0.4rem; }
+    .report-content p { margin: 0.5rem 0; line-height: 1.8; text-indent: 2em; }
+    .report-content ul, .report-content ol { margin: 0.5rem 0 0.5rem 2rem; }
+    .report-content li { margin: 0.25rem 0; line-height: 1.7; }
+    .report-content strong { color: #3d342a; }
+    .report-content table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.9rem; }
+    .report-content th { background: #f3efe8; padding: 0.5rem 0.75rem; border: 1px solid #e8e2d9; font-weight: 600; text-align: left; }
+    .report-content td { padding: 0.4rem 0.75rem; border: 1px solid #e8e2d9; }
+    .report-content tr:nth-child(even) { background: #fdfcfa; }
+    .report-content blockquote { border-left: 3px solid #ff7a50; padding-left: 1rem; margin: 0.75rem 0; color: #7a6f5f; font-style: italic; }
+    .report-content hr { border: none; border-top: 1px solid #e8e2d9; margin: 1.5rem 0; }
+    .report-content code { background: #f3efe8; padding: 0.1rem 0.4rem; border-radius: 3px; font-size: 0.9em; }
+
+    /* 排行榜表格 */
+    .rank-table th { cursor: pointer; user-select: none; }
+    .rank-table th:hover { background: #e8e2d9; }
+    .rank-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border-radius: 8px;
+      font-size: 0.8rem; font-weight: 700;
+    }
+    .rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: white; }
+    .rank-2 { background: linear-gradient(135deg, #C0C0C0, #A8A8A8); color: white; }
+    .rank-3 { background: linear-gradient(135deg, #CD7F32, #B8860B); color: white; }
+    .rank-other { background: #f3efe8; color: #7a6f5f; }
+
+    /* 排行榜列表视图 */
+    .rank-list-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #f3efe8;
+      transition: background 0.2s ease;
+    }
+    .rank-list-row:last-child { border-bottom: none; }
+    .rank-list-row:hover { background: rgba(255,87,34,0.03); }
+    html.dark .rank-list-row { border-bottom-color: #2a2a2a; }
+    html.dark .rank-list-row:hover { background: rgba(255,87,34,0.06); }
+
+    /* Toast 通知 */
+    .toast {
+      position: fixed; top: 1.5rem; right: 1.5rem; z-index: 1000;
+      padding: 0.75rem 1.25rem; border-radius: 12px;
+      background: white; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.15);
+      transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      max-width: 400px;
+    }
+    .toast.show { transform: translateX(0); }
+    .toast.error { border-left: 4px solid #e53e3e; }
+    .toast.success { border-left: 4px solid #38a169; }
+    .toast.info { border-left: 4px solid #ff5722; }
+  </style>
+</head>
+<body>
+  <div id="app" style="transition: min-height 0.15s ease-out;"></div>
+
+  <script>
+    // ==================== 应用状态 ====================
+    console.log('[toolkit] script loaded');
+    const state = {
+      activeTab: 'home',        // home | market | analyze | settings
+      // 排行榜
+      rank: {
+        platform: 'fanqie',     // qidian | fanqie
+        type: 'male_new',
+        category: '',           // 番茄分类ID或名称
+        loading: false,
+        data: null,
+        error: '',
+        searchFilter: '',
+        displayLimit: 60,       // 懒加载：初始显示数量
+        // 总览模式
+        overviewMode: false,    // 是否在总览模式
+        historicalDates: [],    // 有历史数据的日期列表
+        viewingDate: null,      // 当前查看的历史日期（null=今天）
+        viewMode: 'grid',       // grid | list 书籍排列方式
+      },
+      diagnosticExpanded: false,  // 单书诊断器展开状态（默认收起）
+      // 书籍详情面板
+      bookDetail: null,  // 当前查看的书籍对象，null=关闭
+      bookDetailRank: null,  // 当前查看的书籍在榜单中的展示排名
+      // 拆书
+      analyze: {
+        fileName: '',
+        fileSize: 0,
+        chapters: 0,
+        fileContent: '',
+        step: 'idle',           // idle | analyzing | complete | error
+        progress: 0,
+        message: '',
+        currentPhase: '',
+        taskId: null,
+        result: '',
+        reasoning: '',
+        stats: {},
+        modules: {
+          core: true, characters: true, firstChapter: true,
+          pacing: true, techniques: true, outline: true
+        },
+      },
+      // 设置
+      settings: {
+        apiKey: localStorage.getItem('tomato_api_key') || '',
+        baseUrl: localStorage.getItem('tomato_base_url') || 'https://api.deepseek.com',
+        model: localStorage.getItem('tomato_model') || 'deepseek-reasoner',
+        saved: false,
+      },
+    };
+
+    // 启动时同步 API 配置到后端（后端需要它来自动分析词云）
+    if (state.settings.apiKey) {
+      apiPost('/api/settings', {
+        apiKey: state.settings.apiKey,
+        baseUrl: state.settings.baseUrl,
+        model: state.settings.model,
+      }).catch(() => {});
+    }
+
+    // 排行榜类型映射
+    const RANK_TYPES = {
+      qidian: [
+        { value: 'monthly', label: '🎫 月票榜' },
+        { value: 'hotsales', label: '🔥 畅销榜' },
+        { value: 'newbook', label: '🌟 新书榜' },
+      ],
+      fanqie: [
+        { value: 'male_read', label: '📖 男频在读榜' },
+        { value: 'male_new', label: '🌟 男频新书榜' },
+        { value: 'female_read', label: '📖 女频在读榜' },
+        { value: 'female_new', label: '🌟 女频新书榜' },
+      ],
+    };
+
+    // 番茄小说分类缓存
+    let fanqieCategories = [];
+    let fanqieCategoriesLoaded = false;
+
+    // ==================== API 调用 ====================
+    async function apiGet(path) {
+      const resp = await fetch(path);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      return resp.json();
+    }
+
+    async function apiPost(path, data, opts) {
+      const signal = opts && opts.signal;
+      const resp = await fetch(path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        signal,
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ error: '请求失败' }));
+        throw new Error(err.error || `HTTP ${resp.status}`);
+      }
+      return resp.json();
+    }
+
+    // ==================== 排行榜逻辑 ====================
+    let fanqieFontLoaded = false;
+
+    // 动态加载番茄反爬字体，使 PUA 字符正确渲染
+    async function loadFanqieFont() {
+      if (fanqieFontLoaded) return;
+      try {
+        const resp = await fetch('/api/rankings/fanqie/fontcss');
+        if (!resp.ok) return;
+        const css = await resp.text();
+        if (!css) return;
+        // 注入字体 CSS
+        const style = document.createElement('style');
+        style.textContent = css;
+        document.head.appendChild(style);
+        // 等待所有 weight 的字体加载完成
+        if (document.fonts && document.fonts.load) {
+          const m = css.match(/font-family:([^;]+)/);
+          if (m) {
+            const fontName = m[1].trim();
+            await Promise.all([
+              document.fonts.load(`400 16px "${fontName}"`, '的'),
+              document.fonts.load(`500 16px "${fontName}"`, '的'),
+              document.fonts.load(`700 16px "${fontName}"`, '的'),
+            ]);
+          }
+        }
+        fanqieFontLoaded = true;
+        console.log('番茄反爬字体已加载');
+      } catch (e) {
+        console.warn('加载番茄字体失败:', e);
+      }
+    }
+
+    // 检测文本中是否包含 PUA 字符
+    function hasPUA(str) {
+      for (let i = 0; i < str.length; i++) {
+        const c = str.charCodeAt(i);
+        if (c >= 0xE000 && c <= 0xF8FF) return true;
+      }
+      return false;
+    }
+
+    // 跨天自动刷新检测
+    function checkDateChange() {
+      const today = new Date().toISOString().slice(0, 10);
+      const lastDate = localStorage.getItem('toolkit_last_fetch_date');
+      if (lastDate && lastDate !== today) {
+        localStorage.removeItem('toolkit_last_fetch_date');
+        return lastDate; // 返回旧日期，说明跨天了
+      }
+      return null;
+    }
+
+    function markFetchDate() {
+      localStorage.setItem('toolkit_last_fetch_date', new Date().toISOString().slice(0, 10));
+    }
+
+    async function loadRankings(forceRefresh) {
+      state.rank.loading = true;
+      state.rank.error = '';
+
+      // 跨天自动刷新：日期变了就先清缓存
+      const oldDate = checkDateChange();
+      if (oldDate || forceRefresh) {
+        try {
+          await apiPost('/api/rankings/refresh', { platform: state.rank.platform });
+          if (oldDate) showToast(`检测到日期变化（${oldDate} → 今天），自动刷新数据`, 'info');
+        } catch (e) { /* ignore */ }
+      }
+
+      try {
+        const { platform, type } = state.rank;
+
+        // 番茄平台需要加载反爬字体
+        if (platform === 'fanqie') {
+          await loadFanqieFont();
+        }
+
+        let data;
+        if (platform === 'fanqie') {
+          // 解析 type: male_read → gender=male, rankType=read
+          const gender = type.startsWith('male') ? 'male' : 'female';
+          const rankType = type.endsWith('_read') ? 'read' : 'new';
+          data = await apiGet(`/api/rankings/fanqie?type=${rankType}&gender=${gender}`);
+        } else {
+          data = await apiGet(`/api/rankings/${platform}?type=${type}`);
+        }
+
+        if (data.error) {
+          state.rank.error = data.error;
+        } else {
+          state.rank.data = data;
+          markFetchDate();
+          // 自动加载 jieba 关键词（秒出基础词云）
+          loadJiebaKeywords();
+        }
+      } catch (e) {
+        state.rank.error = `加载失败: ${e.message}`;
+      }
+
+      state.rank.loading = false;
+      render(); // 数据到位后一次性渲染
+    }
+
+    async function loadFanqieCategories() {
+      if (fanqieCategoriesLoaded) return;
+      try {
+        const resp = await apiGet('/api/rankings/fanqie/categories');
+        fanqieCategories = resp.categories || [];
+        fanqieCategoriesLoaded = true;
+      } catch (e) {
+        console.log('加载分类失败:', e);
+      }
+    }
+
+    async function refreshRankings() {
+      try {
+        await apiPost('/api/rankings/refresh', { platform: state.rank.platform });
+        showToast('缓存已清除，正在重新加载...', 'info');
+        await loadRankings(true);
+      } catch (e) {
+        showToast('刷新失败', 'error');
+      }
+    }
+
+    // ==================== 历史数据 ====================
+    async function loadHistoricalDates() {
+      try {
+        const resp = await apiGet('/api/rankings/history/dates');
+        state.rank.historicalDates = resp.dates || [];
+      } catch (e) {
+        state.rank.historicalDates = [];
+      }
+    }
+
+    async function loadHistoricalData(dateStr) {
+      state.rank.loading = true;
+      state.rank.viewingDate = dateStr;
+      render();
+
+      try {
+        const { type } = state.rank;
+        const gender = type.startsWith('male') ? 'male' : 'female';
+        const rankType = type.endsWith('_read') ? 'read' : 'new';
+        const cacheKey = `fanqie_${rankType}_${gender}`;
+
+        const data = await apiGet(`/api/rankings/history/${dateStr}/${cacheKey}`);
+        if (data.error) {
+          showToast(data.error, 'error');
+          state.rank.viewingDate = null;
+        } else {
+          state.rank.data = data;
+          showToast(`正在查看 ${dateStr} 的历史数据`, 'info');
+        }
+      } catch (e) {
+        showToast('加载历史数据失败', 'error');
+        state.rank.viewingDate = null;
+      }
+
+      state.rank.loading = false;
+      render();
+    }
+
+    function switchToToday() {
+      state.rank.viewingDate = null;
+      loadRankings();
+    }
+
+    // ==================== 排名变化渲染 ====================
+    function rankChangeHTML(b) {
+      const rt = b.rank_trend;
+      if (!rt || rt === 'unknown') return '<span class="text-[11px] text-ink-300">—</span>';
+      if (rt === 'new') return '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-violet-50 text-violet-600">NEW</span>';
+      if (rt === 'up') return `<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-600"><svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>${b.rank_change}</span>`;
+      if (rt === 'down') return `<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-50 text-red-500"><svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 4.5l15 15m0 0V8.25m0 11.25H8.25"/></svg>${Math.abs(b.rank_change)}</span>`;
+      if (rt === 'stable') return '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-gray-50 text-gray-400">—</span>';
+      return '';
+    }
+
+    // ==================== 总览模式 ====================
+    let overviewCharts = []; // 存储图表实例，切换时销毁
+
+    function destroyCharts() {
+      overviewCharts.forEach(c => c.destroy());
+      overviewCharts = [];
+    }
+
+    function loadOverview() {
+      // 直接使用已加载的当前榜单数据，不做额外API请求
+      // state.rank.data 在切换榜单时已经包含了所有分类数据
+    }
+
+    function toggleOverview() {
+      state.rank.overviewMode = !state.rank.overviewMode;
+      render();
+    }
+
+    // ==================== 图表工具 ====================
+    // 设置 Chart.js 全局默认字体为番茄反爬字体
+    Chart.defaults.font.family = "'DNMrHsV173Pd4pgy', 'Noto Sans SC', 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif";
+
+    function formatNumber(n) {
+      if (!n || n <= 0) return 0;
+      if (n >= 100000000) return (n / 100000000).toFixed(1) + '亿';
+      if (n >= 10000) return (n / 10000).toFixed(1) + '万';
+      return n;
+    }
+
+    // 按子分类聚合统计
+    function aggregateByCategory(books) {
+      const map = {};
+      books.forEach(b => {
+        const cat = b.sub_category || b.category || '其他';
+        if (!map[cat]) {
+          map[cat] = {
+            name: cat,
+            books: [],
+            totalReadCount: 0,
+            avgWordCount: 0,
+            maxReadCount: 0,
+            minReadCount: Infinity,
+            totalWordCount: 0,
+          };
+        }
+        map[cat].books.push(b);
+        const rc = b.read_count || 0;
+        const wc = b.word_count || 0;
+        map[cat].totalReadCount += rc;
+        map[cat].totalWordCount += wc;
+        if (rc > map[cat].maxReadCount) map[cat].maxReadCount = rc;
+        if (rc > 0 && rc < map[cat].minReadCount) map[cat].minReadCount = rc;
+      });
+      Object.values(map).forEach(c => {
+        c.avgWordCount = c.books.length ? Math.round(c.totalWordCount / c.books.length) : 0;
+        if (c.minReadCount === Infinity) c.minReadCount = 0;
+      });
+      return Object.values(map).sort((a, b) => b.totalReadCount - a.totalReadCount);
+    }
+
+    // 按性别分组分类
+    // 注意：有些分类名在男频和女频都存在（如"科幻末世"、"悬疑脑洞"、"游戏体育"）
+    // 当同名分类存在时，根据当前榜单的gender决定归属
+    function groupByGender(categories) {
+      const maleCats = new Set(fanqieCategories.filter(c => c.gender === '男频').map(c => c.name));
+      const femaleCats = new Set(fanqieCategories.filter(c => c.gender === '女频').map(c => c.name));
+      // 找出同时存在于男频和女频的同名分类
+      const overlap = new Set([...maleCats].filter(n => femaleCats.has(n)));
+      // 根据当前榜单类型决定同名分类归属
+      const isMale = state.rank.type?.startsWith('male');
+      return {
+        male: categories.filter(c => {
+          if (overlap.has(c.name)) return isMale;
+          return maleCats.has(c.name);
+        }),
+        female: categories.filter(c => {
+          if (overlap.has(c.name)) return !isMale;
+          return femaleCats.has(c.name);
+        }),
+      };
+    }
+
+    // 创建柱状图：各分类总阅读量对比
+    function createCategoryBarChart(canvasId, categories, title) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return null;
+      const ctx = canvas.getContext('2d');
+
+      const labels = categories.map(c => c.name);
+      const totalReadData = categories.map(c => c.totalReadCount);
+      const maxReadData = categories.map(c => c.maxReadCount);
+
+      const chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: '分类总阅读量',
+              data: totalReadData,
+              backgroundColor: 'rgba(255, 87, 34, 0.6)',
+              borderColor: 'rgba(255, 87, 34, 1)',
+              borderWidth: 1,
+              borderRadius: 4,
+            },
+            {
+              label: '最高单书阅读量',
+              data: maxReadData,
+              backgroundColor: 'rgba(255, 167, 38, 0.6)',
+              borderColor: 'rgba(255, 167, 38, 1)',
+              borderWidth: 1,
+              borderRadius: 4,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: { display: true, text: title, font: { size: 14, weight: 600 }, color: '#454545' },
+            legend: { labels: { font: { size: 12 }, color: '#6d6d6d' } },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: ${formatNumber(ctx.raw)}`,
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: (v) => formatNumber(v),
+                color: '#888',
+                font: { size: 11 },
+              },
+              grid: { color: 'rgba(0,0,0,0.05)' },
+            },
+            x: {
+              ticks: { color: '#6d6d6d', font: { size: 11 }, maxRotation: 45 },
+              grid: { display: false },
+            },
+          },
+        },
+      });
+      return chart;
+    }
+
+    // 创建横向条形图：阅读量 Top 10 书
+    function createTopBooksChart(canvasId, books, title) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return null;
+      const ctx = canvas.getContext('2d');
+
+      const top10 = [...books]
+        .filter(b => (b.read_count || 0) > 0)
+        .sort((a, b) => (b.read_count || 0) - (a.read_count || 0))
+        .slice(0, 10);
+
+      if (top10.length === 0) return null;
+
+      const chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: top10.map(b => b.title.length > 12 ? b.title.slice(0, 12) + '…' : b.title),
+          datasets: [{
+            label: '阅读量',
+            data: top10.map(b => b.read_count || 0),
+            backgroundColor: top10.map((_, i) => {
+              if (i === 0) return 'rgba(255, 87, 34, 0.9)';
+              if (i === 1) return 'rgba(255, 87, 34, 0.7)';
+              if (i === 2) return 'rgba(255, 87, 34, 0.5)';
+              return 'rgba(255, 87, 34, 0.3)';
+            }),
+            borderRadius: 4,
+          }],
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: { display: true, text: title, font: { size: 14, weight: 600 }, color: '#454545' },
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `阅读量: ${formatNumber(ctx.raw)}`,
+                afterLabel: (ctx) => {
+                  const book = top10[ctx.dataIndex];
+                  return `字数: ${formatNumber(book.word_count)} · ${book.author}`;
+                },
+              }
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: { callback: (v) => formatNumber(v), color: '#888', font: { size: 11 } },
+              grid: { color: 'rgba(0,0,0,0.05)' },
+            },
+            y: {
+              ticks: { color: '#6d6d6d', font: { size: 11 } },
+              grid: { display: false },
+            },
+          },
+        },
+      });
+      return chart;
+    }
+
+    // 创建字数分布饼图/环形图
+    function createWordCountChart(canvasId, books, title) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return null;
+      const ctx = canvas.getContext('2d');
+
+      // 按字数区间分桶
+      const buckets = {
+        '30万以下': 0, '30-50万': 0, '50-100万': 0,
+        '100-200万': 0, '200-500万': 0, '500万以上': 0,
+      };
+      books.forEach(b => {
+        const w = b.word_count || 0;
+        if (w < 300000) buckets['30万以下']++;
+        else if (w < 500000) buckets['30-50万']++;
+        else if (w < 1000000) buckets['50-100万']++;
+        else if (w < 2000000) buckets['100-200万']++;
+        else if (w < 5000000) buckets['200-500万']++;
+        else buckets['500万以上']++;
+      });
+
+      const colors = ['#ffccbc', '#ffab91', '#ff8a65', '#ff7043', '#ff5722', '#e64a19'];
+
+      const chart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(buckets),
+          datasets: [{
+            data: Object.values(buckets),
+            backgroundColor: colors,
+            borderWidth: 2,
+            borderColor: '#fff',
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: { display: true, text: title, font: { size: 14, weight: 600 }, color: '#454545' },
+            legend: {
+              position: 'right',
+              labels: { font: { size: 12 }, color: '#6d6d6d', padding: 12 },
+            },
+          },
+        },
+      });
+      return chart;
+    }
+
+    // 创建横向条形图：各分类最高/最低在读人数对比
+    function createMinMaxReadChart(canvasId, categories, title) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return null;
+      const ctx = canvas.getContext('2d');
+
+      // 按最高阅读量降序排列
+      const sorted = [...categories].filter(c => c.maxReadCount > 0).sort((a, b) => b.maxReadCount - a.maxReadCount);
+      if (sorted.length === 0) return null;
+
+      const labels = sorted.map(c => c.name);
+      const maxData = sorted.map(c => c.maxReadCount);
+      const minData = sorted.map(c => c.minReadCount);
+
+      const chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: '最高在读人数',
+              data: maxData,
+              backgroundColor: 'rgba(255, 87, 34, 0.7)',
+              borderColor: 'rgba(255, 87, 34, 1)',
+              borderWidth: 1,
+              borderRadius: 4,
+            },
+            {
+              label: '最低在读人数',
+              data: minData,
+              backgroundColor: 'rgba(251, 191, 36, 0.6)',
+              borderColor: 'rgba(251, 191, 36, 1)',
+              borderWidth: 1,
+              borderRadius: 4,
+            },
+          ],
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: { display: true, text: title, font: { size: 14, weight: 600 }, color: '#454545' },
+            legend: { labels: { font: { size: 12 }, color: '#6d6d6d' } },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: ${formatNumber(ctx.raw)}`,
+                afterBody: (items) => {
+                  const idx = items[0].dataIndex;
+                  const cat = sorted[idx];
+                  return `差距: ${formatNumber(cat.maxReadCount - cat.minReadCount)} · ${cat.books.length}本`;
+                },
+              }
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: { callback: (v) => formatNumber(v), color: '#888', font: { size: 11 } },
+              grid: { color: 'rgba(0,0,0,0.05)' },
+            },
+            y: {
+              ticks: { color: '#6d6d6d', font: { size: 11 } },
+              grid: { display: false },
+            },
+          },
+        },
+      });
+      return chart;
+    }
+
+    // ==================== 拆书逻辑 ====================
+    let pollTimer = null;
+
+    function handleFileUpload(file) {
+      if (!file) return;
+
+      const maxSize = 50 * 1024 * 1024; // 50MB
+      if (file.size > maxSize) {
+        showToast('文件大小不能超过 50MB', 'error');
+        return;
+      }
+
+      state.analyze.fileName = file.name;
+      state.analyze.fileSize = file.size;
+      state.analyze.result = '';
+      state.analyze.reasoning = '';
+      state.analyze.step = 'idle';
+      state.analyze.progress = 0;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        state.analyze.fileContent = e.target.result;
+        // 简单预统计章节数
+        const chapterCount = (e.target.result.match(/^第[零一二三四五六七八九十百千万\d]+\s*章/gm) || []).length;
+        state.analyze.chapters = chapterCount || Math.ceil(file.size / 3000);
+        render();
+        showToast(`文件已加载: ${file.name}（约${state.analyze.chapters}章）`, 'success');
+      };
+      reader.readAsText(file, 'utf-8');
+    }
+
+    async function startAnalysis() {
+      if (!state.analyze.fileContent) {
+        showToast('请先上传小说文件', 'error');
+        return;
+      }
+      if (!state.settings.apiKey) {
+        showToast('请先配置 API Key', 'error');
+        state.activeTab = 'settings';
+        render();
+        return;
+      }
+
+      // 保存设置
+      saveSettings();
+
+      state.analyze.step = 'analyzing';
+      state.analyze.progress = 0;
+      state.analyze.message = '正在提交分析任务...';
+      state.analyze.result = '';
+      state.analyze.reasoning = '';
+      render();
+
+      try {
+        const resp = await apiPost('/api/analyze', {
+          content: state.analyze.fileContent,
+          apiConfig: {
+            apiKey: state.settings.apiKey,
+            baseUrl: state.settings.baseUrl,
+            model: state.settings.model,
+          },
+          modules: state.analyze.modules,
+        });
+
+        state.analyze.taskId = resp.task_id;
+        state.analyze.message = '任务已创建，开始分析...';
+
+        // 开始轮询
+        startPolling();
+        render();
+
+      } catch (e) {
+        state.analyze.step = 'error';
+        state.analyze.message = `提交失败: ${e.message}`;
+        render();
+      }
+    }
+
+    function startPolling() {
+      if (pollTimer) clearInterval(pollTimer);
+
+      pollTimer = setInterval(async () => {
+        if (!state.analyze.taskId) return;
+
+        try {
+          const data = await apiGet(`/api/analysis/status/${state.analyze.taskId}`);
+
+          state.analyze.progress = data.progress || 0;
+          state.analyze.message = data.message || '';
+          state.analyze.currentPhase = data.current_phase || '';
+
+          if (data.phase1) state.analyze.phase1 = data.phase1;
+          if (data.phase2) state.analyze.phase2 = data.phase2;
+          if (data.reasoning) state.analyze.reasoning = data.reasoning;
+          if (data.stats) state.analyze.stats = data.stats;
+
+          if (data.status === 'complete') {
+            state.analyze.step = 'complete';
+            state.analyze.result = data.result;
+            clearInterval(pollTimer);
+            pollTimer = null;
+            showToast('拆书分析完成！', 'success');
+          } else if (data.status === 'error') {
+            state.analyze.step = 'error';
+            clearInterval(pollTimer);
+            pollTimer = null;
+            showToast(data.message, 'error');
+          }
+
+          render();
+        } catch (e) {
+          // 轮询失败，继续
+          console.log('轮询失败:', e.message);
+        }
+      }, 2000);
+    }
+
+    function stopAnalysis() {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+      state.analyze.step = 'idle';
+      state.analyze.progress = 0;
+      state.analyze.message = '';
+      state.analyze.taskId = null;
+      render();
+    }
+
+    // ==================== 设置 ====================
+    function saveSettings() {
+      localStorage.setItem('tomato_api_key', state.settings.apiKey);
+      localStorage.setItem('tomato_base_url', state.settings.baseUrl);
+      localStorage.setItem('tomato_model', state.settings.model);
+      state.settings.saved = true;
+      render();
+      // 同步 API 配置到后端（后端需要它来自动分析词云）
+      apiPost('/api/settings', {
+        apiKey: state.settings.apiKey,
+        baseUrl: state.settings.baseUrl,
+        model: state.settings.model,
+      }).catch(() => {});
+      showToast('设置已保存', 'success');
+      setTimeout(() => { state.settings.saved = false; render(); }, 2000);
+    }
+
+    function exportPDF() {
+      const el = document.getElementById('report-output');
+      if (!el) return;
+
+      showToast('正在生成 PDF...', 'info');
+
+      const opt = {
+        margin: [10, 10, 10, 10],
+        filename: `${state.analyze.fileName.replace(/\.\w+$/, '')}_拆书报告.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+
+      html2pdf().set(opt).from(el).save().then(() => {
+        showToast('PDF 导出成功！', 'success');
+      }).catch(() => {
+        showToast('PDF 导出失败', 'error');
+      });
+    }
+
+    function exportRankCSV() {
+      if (!state.rank.data?.books?.length) return;
+      const books = state.rank.data.books;
+      const header = '排名,书名,作者,简介,来源\n';
+      const rows = books.map(b =>
+        `${b.rank},"${b.title}","${b.author}","${(b.intro || '').replace(/"/g, '""')}",${b.source}`
+      ).join('\n');
+      const csv = '\uFEFF' + header + rows; // BOM for Excel
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${state.rank.data.platform}_${state.rank.data.type}_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('CSV 导出成功！', 'success');
+    }
+
+    // ==================== Toast 通知 ====================
+    function showToast(msg, type = 'info') {
+      const existing = document.querySelector('.toast');
+      if (existing) existing.remove();
+
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<span class="text-sm font-medium">${msg}</span>`;
+      document.body.appendChild(toast);
+
+      requestAnimationFrame(() => toast.classList.add('show'));
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 400);
+      }, 3000);
+    }
+
+    // ==================== Markdown 简易解析 ====================
+    function parseMd(text) {
+      if (!text) return '';
+      return text
+        .replace(/^#### (.+)$/gm, '<h4 class="text-base font-semibold text-ink-600 mt-4 mb-2">$1</h4>')
+        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+        .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/`(.+?)`/g, '<code>$1</code>')
+        .replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>')
+        .replace(/^---$/gm, '<hr>')
+        .replace(/^\| (.+) \|$/gm, (match) => {
+          const cells = match.slice(2, -2).split(' | ');
+          if (cells.some(c => c.match(/^[-:]+$/))) return '';
+          return `<tr>${cells.map(c => `<td>${c.trim()}</td>`).join('')}</tr>`;
+        })
+        .replace(/((?:<tr>.*<\/tr>\n?)+)/g, '<table>$1</table>')
+        .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+        .replace(/^- (.+)$/gm, '<li>$1</li>')
+        .replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>')
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/^(?!<[hutblo])/gm, '<p>')
+        .replace(/(<\/?(?:h[1-4]|ul|ol|li|table|tr|td|th|blockquote|hr|p)>)/g, '\n$1\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+    }
+
+    // ==================== 渲染 ====================
+    function render() {
+      const app = document.getElementById('app');
+      // 锁定当前高度，防止DOM重建时布局跳动
+      const currentHeight = app.scrollHeight;
+      app.style.minHeight = currentHeight + 'px';
+      app.innerHTML = renderLayout();
+      bindEvents();
+      // 渲染完成后，等布局稳定再释放高度
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          app.style.minHeight = '';
+        });
+      });
+      // 总览模式下初始化图表
+      if (state.rank.overviewMode && state.rank.data?.books?.length) {
+        requestAnimationFrame(() => initOverviewCharts());
+      }
+      // 词云：数据已有但 DOM 刚重建，需要重绘
+      if (_wordCloudData && _wordCloudData.length > 0 && document.getElementById('canvas-wordcloud')) {
+        requestAnimationFrame(() => initWordCloud());
+      }
+    }
+
+    function initOverviewCharts() {
+      destroyCharts();
+      const r = state.rank;
+      const data = r.data;
+
+      if (!data?.books?.length) return;
+
+      const books = data.books;
+      const categories = aggregateByCategory(books);
+      const genderGroups = groupByGender(categories);
+
+      // Top 10 书籍
+      const c1 = createTopBooksChart('chart-overview-top10', books, '阅读量 Top 10');
+      if (c1) overviewCharts.push(c1);
+
+      // 字数分布
+      const c2 = createWordCountChart('chart-overview-worddist', books, '字数分布');
+      if (c2) overviewCharts.push(c2);
+
+      // 男频分类
+      if (genderGroups.male.length > 0) {
+        const c3 = createCategoryBarChart('chart-overview-male', genderGroups.male, '男频各分类阅读量对比');
+        if (c3) overviewCharts.push(c3);
+        const c3b = createMinMaxReadChart('chart-overview-male-minmax', genderGroups.male, '男频各分类最高/最低在读人数');
+        if (c3b) overviewCharts.push(c3b);
+      }
+      // 女频分类
+      if (genderGroups.female.length > 0) {
+        const c4 = createCategoryBarChart('chart-overview-female', genderGroups.female, '女频各分类阅读量对比');
+        if (c4) overviewCharts.push(c4);
+        const c4b = createMinMaxReadChart('chart-overview-female-minmax', genderGroups.female, '女频各分类最高/最低在读人数');
+        if (c4b) overviewCharts.push(c4b);
+      }
+
+      // 词云：仅渲染已有数据，不自动触发加载（用户通过按钮手动触发）
+      initWordCloud();
+    }
+
+    function renderLayout() {
+      const isHome = state.activeTab === 'home';
+      const tabLabels = { market: '数据扫榜', analyze: '智能拆书', settings: '设置' };
+
+      return `
+        <div class="min-h-screen ${isHome ? 'bg-transparent relative' : 'bg-paper-100'} flex flex-col">
+          ${isHome ? '' : `
+          <!-- 顶部导航（仅子页面显示） -->
+          <header class="bg-white/90 backdrop-blur-xl border-b border-paper-200/60 sticky top-0 z-50">
+            <div class="max-w-6xl mx-auto px-6 sm:px-8">
+              <div class="flex items-center justify-between h-14">
+                <div class="flex items-center gap-3">
+                  <button ${state.bookDetail ? 'onclick="closeBookDetail()"' : 'data-tab="home"'} class="flex items-center gap-1 text-ink-400 hover:text-ink-700 transition-colors text-[13px]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+                    ${state.bookDetail ? '返回榜单' : '返回'}
+                  </button>
+                  <span class="text-paper-300">/</span>
+                  <span class="text-[15px] font-semibold text-ink-900">${state.bookDetail ? (state.bookDetail.title || '书籍详情') : (tabLabels[state.activeTab] || '')}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button id="dark-toggle-sub" class="text-ink-400 hover:text-ink-700 transition-colors" title="切换暗黑模式">
+                    <svg class="w-[18px] h-[18px] dark-icon-sun-sub hidden" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"/></svg>
+                    <svg class="w-[18px] h-[18px] dark-icon-moon-sub" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/></svg>
+                  </button>
+                <button data-tab="settings" class="text-ink-400 hover:text-ink-700 transition-colors">
+                  <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </button>
+              </div>
+            </div>
+          </header>`}
+
+          <!-- 内容区 -->
+          <main class="flex-1 max-w-6xl w-full mx-auto px-6 sm:px-8 ${isHome ? '' : 'py-8'}">
+            ${state.activeTab === 'home' ? renderHomeTab() : ''}
+            ${state.activeTab === 'market' ? (state.bookDetail ? renderBookDetailModal() : renderMarketTab()) : ''}
+            ${state.activeTab === 'analyze' ? renderAnalyzeTab() : ''}
+            ${state.activeTab === 'settings' ? renderSettingsTab() : ''}
+          </main>
+
+          ${isHome ? '' : `
+          <!-- Footer（仅子页面显示） -->
+          <footer class="border-t border-paper-200/60 bg-white/50">
+            <div class="max-w-6xl mx-auto px-6 sm:px-8 py-5 flex items-center justify-between text-xs text-ink-400">
+              <span class="tracking-tight">iWorks</span>
+              <span>v1.4.1</span>
+            </div>
+          </footer>`}
+        </div>
+      `;
+    }
+
+    // ==================== 首页 ====================
+    function renderHomeTab() {
+      return `
+        <!-- 高级背景层 -->
+        <div class="home-bg"></div>
+        <div class="home-orb-1"></div>
+        <div class="home-orb-2"></div>
+
+        <!-- 内容层 -->
+        <section id="hero-section" class="relative z-10 pt-[38vh] sm:pt-[40vh] pb-8 text-center">
+          <!-- 背景光晕 -->
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-tomato-100/30 blur-[100px] pointer-events-none" style="animation:hero-glow 4s ease-in-out infinite;animation-delay:0.5s;opacity:0"></div>
+
+          <!-- iWorks 字母容器（JS 填充轨道动画字母） -->
+          <div id="hero-letters" class="mb-6">${state.heroAnimPlayed ? `
+            <span class="hero-individual-letter floating tracking-tight text-6xl sm:text-8xl text-ink-900 italic brand-letter-i font-semibold" style="animation-delay:0ms">i</span>
+            <span class="hero-individual-letter floating tracking-tight text-6xl sm:text-8xl text-transparent bg-clip-text bg-gradient-to-r from-tomato-500 to-tomato-400 font-bold hero-sun-glow" style="opacity:1;animation-delay:200ms">W</span>
+            <span class="hero-individual-letter floating tracking-tight text-6xl sm:text-8xl text-ink-900" style="animation-delay:400ms">o</span>
+            <span class="hero-individual-letter floating tracking-tight text-6xl sm:text-8xl text-ink-900" style="animation-delay:600ms">r</span>
+            <span class="hero-individual-letter floating tracking-tight text-6xl sm:text-8xl text-ink-900" style="animation-delay:800ms">k</span>
+            <span class="hero-individual-letter floating tracking-tight text-6xl sm:text-8xl text-ink-900" style="animation-delay:1000ms">s</span>
+          ` : ''}</div>
+        </section>
+
+        <!-- 功能卡片 -->
+        <section class="relative z-10 grid sm:grid-cols-2 gap-3 pb-6 max-w-xl mx-auto">
+          <a data-tab="market" class="${state.heroAnimPlayed ? '' : 'hero-scale'} home-card group block bg-white rounded-xl border border-paper-200 p-4 hover:border-tomato-200 hover:shadow-lg hover:shadow-tomato-100/50 transition-all duration-300 cursor-pointer"${state.heroAnimPlayed ? '' : ' style="animation-delay:3600ms"'}>
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-tomato-50 to-tomato-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+                <svg class="w-4 h-4 text-tomato-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
+              </div>
+              <div>
+                <h3 class="text-sm font-semibold text-ink-900">数据扫榜</h3>
+                <p class="text-xs text-ink-400">实时追踪番茄、起点排行榜</p>
+              </div>
+            </div>
+          </a>
+
+          <a data-tab="analyze" class="${state.heroAnimPlayed ? '' : 'hero-scale'} home-card group block bg-white rounded-xl border border-paper-200 p-4 hover:border-tomato-200 hover:shadow-lg hover:shadow-tomato-100/50 transition-all duration-300 cursor-pointer"${state.heroAnimPlayed ? '' : ' style="animation-delay:3750ms"'}>
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+                <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+              </div>
+              <div>
+                <h3 class="text-sm font-semibold text-ink-900">智能拆书</h3>
+                <p class="text-xs text-ink-400">AI 拆解书籍、提炼套路规律</p>
+              </div>
+            </div>
+          </a>
+        </section>
+
+        <!-- 暗黑模式切换 -->
+        <button id="dark-toggle" class="fixed top-5 right-5 z-50 w-9 h-9 rounded-full bg-white/70 dark:bg-white/10 backdrop-blur border border-paper-200 dark:border-gray-700 flex items-center justify-center text-ink-500 dark:text-gray-400 hover:scale-110 transition-all duration-300 cursor-pointer" title="切换暗黑模式">
+          <svg class="w-4 h-4 dark-icon-sun hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"/></svg>
+          <svg class="w-4 h-4 dark-icon-moon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/></svg>
+        </button>
+      `;
+    }
+
+    // ==================== 扫榜页面 ====================
+    function renderMarketTab() {
+      const r = state.rank;
+
+      // 总览模式
+      if (r.overviewMode) {
+        return `
+          <div class="tab-content">
+            <!-- 控制栏 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-paper-200 p-6 mb-6">
+              <div class="flex flex-wrap items-center gap-4">
+                <button id="btn-back-to-rank" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all bg-paper-100 hover:bg-paper-200 text-ink-700">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                  </svg>
+                  返回榜单
+                </button>
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-medium text-ink-600">平台：</span>
+                  <div class="flex bg-paper-100 rounded-lg p-0.5">
+                    <button data-platform="qidian" class="platform-btn px-3 py-1.5 rounded-md text-sm transition-all ${r.platform === 'qidian' ? 'bg-white shadow-sm text-ink-900 font-medium' : 'text-ink-500'}">
+                      起点中文网
+                    </button>
+                    <button data-platform="fanqie" class="platform-btn px-3 py-1.5 rounded-md text-sm transition-all ${r.platform === 'fanqie' ? 'bg-white shadow-sm text-ink-900 font-medium' : 'text-ink-500'}">
+                      番茄小说
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            ${renderOverviewTab()}
+          </div>
+        `;
+      }
+
+      // 普通模式
+      const { type, loading, data, error, searchFilter } = r;
+      const types = RANK_TYPES[r.platform];
+
+      // 从数据中提取所有分类（仅番茄）
+      const allCategories = r.platform === 'fanqie' && data?.books?.length
+        ? [...new Set(data.books.map(b => b.sub_category).filter(Boolean))].sort()
+        : [];
+
+      // 过滤书籍
+      let books = data?.books || [];
+      if (r.category) {
+        books = books.filter(b => b.sub_category === r.category);
+      }
+      // "全部"视图：按阅读量降序排名
+      if (!r.category) {
+        books = [...books].sort((a, b) => (b.read_count || 0) - (a.read_count || 0));
+      }
+      if (searchFilter) {
+        const kw = searchFilter.toLowerCase();
+        books = books.filter(b =>
+          b.title.toLowerCase().includes(kw) ||
+          b.author.toLowerCase().includes(kw) ||
+          (b.intro || '').toLowerCase().includes(kw) ||
+          (b.sub_category || '').toLowerCase().includes(kw)
+        );
+      }
+
+      return `
+        <div class="tab-content">
+          <!-- 控制栏 -->
+          <div class="bg-white rounded-2xl shadow-sm border border-paper-200 p-6 mb-6">
+            <div class="flex flex-wrap items-center gap-4">
+              <!-- 平台切换 -->
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-ink-600">平台：</span>
+                <div class="flex bg-paper-100 rounded-lg p-0.5">
+                  <button data-platform="qidian" class="platform-btn px-3 py-1.5 rounded-md text-sm transition-all ${r.platform === 'qidian' ? 'bg-white shadow-sm text-ink-900 font-medium' : 'text-ink-500'}">
+                    起点中文网
+                  </button>
+                  <button data-platform="fanqie" class="platform-btn px-3 py-1.5 rounded-md text-sm transition-all ${r.platform === 'fanqie' ? 'bg-white shadow-sm text-ink-900 font-medium' : 'text-ink-500'}">
+                    番茄小说
+                  </button>
+                </div>
+              </div>
+
+              <!-- 排行类型 -->
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-ink-600">榜单：</span>
+                <div class="flex flex-wrap gap-1.5">
+                  ${types.map(t => `
+                    <button data-rank-type="${t.value}" class="rank-type-btn px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${type === t.value ? 'bg-tomato-500 text-white shadow-sm' : 'bg-paper-100 text-ink-600 hover:bg-paper-200'}">
+                      ${t.label}
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- 分类过滤（仅番茄有数据时显示） -->
+              ${allCategories.length > 0 ? `
+              <div class="w-full flex items-start gap-2 pt-2 border-t border-paper-100">
+                <span class="text-xs font-medium text-ink-500 flex-shrink-0 pt-1">分类：</span>
+                <div class="flex flex-wrap gap-1.5 flex-1">
+                  <button data-category="" class="category-btn px-2.5 py-1 rounded-md text-xs font-medium transition-all whitespace-nowrap ${!r.category ? 'bg-tomato-500 text-white shadow-sm' : 'bg-paper-100 text-ink-600 hover:bg-paper-200'}">
+                    全部 (${data.books.length})
+                  </button>
+                  ${allCategories.map(cat => {
+                    const count = data.books.filter(b => b.sub_category === cat).length;
+                    return `
+                      <button data-category="${cat}" class="category-btn px-2.5 py-1 rounded-md text-xs font-medium transition-all whitespace-nowrap ${r.category === cat ? 'bg-tomato-500 text-white shadow-sm' : 'bg-paper-100 text-ink-600 hover:bg-paper-200'}">
+                        ${cat} (${count})
+                      </button>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+              ` : ''}
+
+              <!-- 搜索 + 操作 -->
+              <div class="flex items-center gap-2 ml-auto">
+                <!-- 排列方式切换 -->
+                <div class="flex items-center bg-paper-50 rounded-lg p-0.5 border border-paper-200">
+                  <button id="btn-view-grid" class="p-1.5 rounded-md transition-all ${state.rank.viewMode === 'grid' ? 'bg-white shadow-sm text-tomato-500' : 'text-ink-400 hover:text-ink-600'}" title="卡片视图">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                    </svg>
+                  </button>
+                  <button id="btn-view-list" class="p-1.5 rounded-md transition-all ${state.rank.viewMode === 'list' ? 'bg-white shadow-sm text-tomato-500' : 'text-ink-400 hover:text-ink-600'}" title="列表视图">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                    </svg>
+                  </button>
+                </div>
+                <div class="relative">
+                  <input type="text" id="rank-search" placeholder="搜索书名/作者..."
+                    class="w-48 pl-8 pr-3 py-2 text-sm bg-paper-50 border border-paper-300 rounded-lg focus:outline-none focus:border-tomato-400 focus:ring-2 focus:ring-tomato-100 transition-all"
+                    value="${searchFilter}" />
+                  <svg class="absolute left-2.5 top-2.5 w-4 h-4 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                  </svg>
+                </div>
+                <button id="btn-toggle-overview" class="px-3 py-2 rounded-lg text-sm font-medium transition-all ${!state.rank.overviewMode ? 'bg-paper-100 hover:bg-paper-200 text-ink-600' : 'bg-tomato-500 text-white shadow-sm'} flex items-center gap-1.5">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                  </svg>
+                  总览
+                </button>
+                <button id="btn-refresh" class="p-2 rounded-lg bg-paper-100 hover:bg-paper-200 text-ink-600 transition-all" title="刷新">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                  </svg>
+                </button>
+                ${books.length > 0 ? `
+                  <button id="btn-export-csv" class="px-3 py-2 rounded-lg bg-paper-100 hover:bg-paper-200 text-sm text-ink-600 transition-all flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    导出CSV
+                  </button>
+                ` : ''}
+                ${state.rank.historicalDates.length > 0 ? `
+                  <div class="relative group">
+                    <button class="px-3 py-2 rounded-lg bg-paper-100 hover:bg-paper-200 text-sm text-ink-600 transition-all flex items-center gap-1.5">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                      历史
+                    </button>
+                    <div class="absolute right-0 top-full mt-1 w-44 bg-white rounded-xl shadow-lg border border-paper-200 py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20">
+                      ${state.rank.viewingDate ? `<button onclick="switchToToday()" class="w-full text-left px-3 py-2 text-sm text-emerald-600 hover:bg-paper-50 font-medium">← 返回今天</button><div class="border-t border-paper-100 my-1"></div>` : ''}
+                      ${state.rank.historicalDates.slice(0, 15).map(d => `
+                        <button onclick="loadHistoricalData('${d.date}')" class="w-full text-left px-3 py-2 text-sm ${state.rank.viewingDate === d.date ? 'text-tomato-500 bg-tomato-50 font-medium' : 'text-ink-600 hover:bg-paper-50'}">${d.date} <span class="text-xs text-ink-300">(${d.rankings.length}榜)</span></button>
+                      `).join('')}
+                    </div>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+
+          <!-- 首次加载spinner（仅在loading且无旧数据时显示） -->
+          ${loading && !data ? `
+            <div class="bg-white rounded-2xl shadow-sm border border-paper-200 p-12 text-center">
+              <div class="flex justify-center gap-1.5 mb-4">
+                <div class="loading-dot w-2.5 h-2.5 bg-tomato-500 rounded-full"></div>
+                <div class="loading-dot w-2.5 h-2.5 bg-tomato-500 rounded-full"></div>
+                <div class="loading-dot w-2.5 h-2.5 bg-tomato-500 rounded-full"></div>
+              </div>
+              <p class="text-ink-500">正在抓取排行榜数据...</p>
+            </div>
+          ` : ''}
+
+          <!-- 错误提示 -->
+          ${error ? `
+            <div class="bg-white rounded-2xl shadow-sm border border-red-200 p-8 text-center">
+              <div class="text-4xl mb-3">😕</div>
+              <p class="text-ink-600 mb-2">${error}</p>
+              <p class="text-sm text-ink-400">可能原因：网络问题、目标网站更新、或触发了反爬机制</p>
+              <button onclick="loadRankings()" class="mt-4 px-4 py-2 bg-tomato-500 text-white rounded-lg text-sm hover:bg-tomato-600 transition-all">
+                重新尝试
+              </button>
+            </div>
+          ` : ''}
+
+          <!-- 排行榜列表 -->
+          ${!error && books.length > 0 ? `
+            ${data.is_historical ? `
+              <div class="mb-3 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3">
+                <svg class="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-sm text-amber-700">正在查看 <strong>${data.historical_date}</strong> 的历史数据（${data.book_count || books.length} 本）</span>
+                <button onclick="switchToToday()" class="ml-auto px-2.5 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-lg hover:bg-amber-200 transition-all">返回今天 →</button>
+              </div>
+            ` : ''}
+            <div class="bg-white rounded-2xl shadow-sm border border-paper-200 overflow-hidden">
+              <div class="px-6 py-4 border-b border-paper-200 flex items-center justify-between">
+                <div>
+                  <h2 class="text-lg font-semibold text-ink-800 font-serif">${data.platform} · ${types.find(t => t.value === type)?.label || type}</h2>
+                  <p class="text-sm text-ink-400 mt-0.5">共 ${data.total || books.length} 本${data.update_time ? ' · ' + data.update_time + ' 更新' : ''}${searchFilter ? ` · 筛选后 ${books.length} 本` : ''}</p>
+                </div>
+              </div>
+              ${state.rank.viewMode === 'grid' ? `
+              <!-- 卡片视图 -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4 md:p-6">
+                ${books.slice(0, r.displayLimit || 60).map((b, idx) => {
+                  const displayRank = idx + 1;
+                  const rankClass = displayRank <= 3 ? `rank-${displayRank}` : 'rank-other';
+                  const wordStr = b.word_display || (b.word_count ? (b.word_count > 10000 ? (b.word_count / 10000).toFixed(0) + '万' : b.word_count) : '');
+                  const readStr = b.read_display || '';
+                  const coverUrl = b.cover || '';
+                  const hasCover = coverUrl.startsWith('http');
+                  return `
+                    <div class="rank-card group flex gap-3 p-3 rounded-xl border border-paper-100 hover:border-tomato-200 hover:shadow-md transition-all cursor-pointer ${r.platform === 'fanqie' ? 'fanqie-font' : ''}" onclick="openBookDetail('${b.id}')">
+                      ${hasCover ? `
+                        <div class="relative flex-shrink-0 w-16 h-[100px] rounded-lg overflow-hidden bg-paper-50">
+                          <img src="${coverUrl}" alt="${b.title}" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
+                          <span class="absolute top-0.5 left-0.5 rank-badge ${rankClass} text-[10px] !w-5 !h-5 !leading-5">${displayRank}</span>
+                          <span class="absolute top-0.5 right-0.5">${rankChangeHTML(b)}</span>
+                        </div>
+                      ` : `
+                        <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center">
+                          <span class="rank-badge ${rankClass}">${displayRank}</span>
+                        </div>
+                      `}
+                      <div class="flex-1 min-w-0 flex flex-col justify-between">
+                        <div>
+                          <a href="${b.url}" target="_blank" class="text-sm font-bold text-ink-800 hover:text-tomato-600 transition-colors line-clamp-1 fanqie-font">${b.title}</a>
+                          <p class="text-xs text-ink-400 mt-0.5 fanqie-font">${b.author}${b.category ? ' · ' + b.category : ''}</p>
+                        </div>
+                        <p class="text-xs text-ink-300 line-clamp-2 mt-1 fanqie-font">${b.intro || ''}</p>
+                        <div class="flex items-center gap-2 mt-1.5 flex-wrap">
+                          ${wordStr ? `<span class="text-[11px] text-ink-400 bg-paper-50 px-1.5 py-0.5 rounded fanqie-font">${wordStr}字</span>` : ''}
+                          ${readStr ? `<span class="text-[11px] text-ink-400 bg-paper-50 px-1.5 py-0.5 rounded fanqie-font">${readStr}在读</span>` : ''}
+                          ${b.sub_category ? `<span class="text-[11px] text-tomato-600 bg-tomato-50 px-1.5 py-0.5 rounded fanqie-font">${b.sub_category}</span>` : ''}
+                        </div>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+              ` : `
+              <!-- 列表视图 -->
+              <div class="divide-y divide-paper-100">
+                <!-- 表头 -->
+                <div class="flex items-center gap-3 px-4 md:px-6 py-2.5 text-xs text-ink-400 font-medium bg-paper-50/50">
+                  <span class="w-8 text-center flex-shrink-0">排名</span>
+                  <span class="w-14 text-center flex-shrink-0">变化</span>
+                  <span class="w-10 h-14 flex-shrink-0"></span>
+                  <span class="flex-1 min-w-0">书名 / 作者</span>
+                  <span class="hidden md:block w-20 text-right flex-shrink-0">字数</span>
+                  <span class="hidden md:block w-20 text-right flex-shrink-0">在读</span>
+                  <span class="hidden lg:block w-24 text-center flex-shrink-0">分类</span>
+                  <span class="w-16 text-center flex-shrink-0">简介</span>
+                </div>
+                ${books.slice(0, r.displayLimit || 60).map((b, idx) => {
+                  const displayRank = idx + 1;
+                  const rankClass = displayRank <= 3 ? `rank-${displayRank}` : 'rank-other';
+                  const wordStr = b.word_display || (b.word_count ? (b.word_count > 10000 ? (b.word_count / 10000).toFixed(0) + '万' : b.word_count) : '');
+                  const readStr = b.read_display || '';
+                  const coverUrl = b.cover || '';
+                  const hasCover = coverUrl.startsWith('http');
+                  return `
+                    <div class="rank-list-row cursor-pointer group ${r.platform === 'fanqie' ? 'fanqie-font' : ''}" onclick="openBookDetail('${b.id}')">
+                      <span class="w-8 text-center flex-shrink-0">
+                        <span class="rank-badge ${rankClass} text-[11px] !w-6 !h-6">${displayRank}</span>
+                      </span>
+                      <span class="w-14 text-center flex-shrink-0">${rankChangeHTML(b)}</span>
+                      <span class="w-10 h-14 flex-shrink-0 rounded-md overflow-hidden bg-paper-50">
+                        ${hasCover ? `<img src="${coverUrl}" alt="" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">` : ''}
+                      </span>
+                      <span class="flex-1 min-w-0">
+                        <span class="text-sm font-semibold text-ink-800 group-hover:text-tomato-600 transition-colors line-clamp-1 fanqie-font">${b.title}</span>
+                        <span class="block text-xs text-ink-400 mt-0.5 fanqie-font">${b.author}</span>
+                      </span>
+                      ${wordStr ? `<span class="hidden md:block w-20 text-right flex-shrink-0 text-xs text-ink-500 fanqie-font">${wordStr}字</span>` : `<span class="hidden md:block w-20 text-right flex-shrink-0 text-xs text-ink-300">-</span>`}
+                      ${readStr ? `<span class="hidden md:block w-20 text-right flex-shrink-0 text-xs text-ink-500 fanqie-font">${readStr}</span>` : `<span class="hidden md:block w-20 text-right flex-shrink-0 text-xs text-ink-300">-</span>`}
+                      ${b.sub_category ? `<span class="hidden lg:block w-24 text-center flex-shrink-0 text-[11px] text-tomato-600 bg-tomato-50 px-1.5 py-0.5 rounded fanqie-font">${b.sub_category}</span>` : `<span class="hidden lg:block w-24 text-center flex-shrink-0">-</span>`}
+                      <span class="w-16 text-center flex-shrink-0" title="${(b.intro || '').replace(/"/g, '&quot;')}">
+                        <svg class="w-4 h-4 text-ink-300 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                      </span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+              `}
+              ${(r.displayLimit || 60) < books.length ? `
+                <div class="text-center py-4 border-t border-paper-100">
+                  <button id="btn-load-more" class="px-6 py-2.5 rounded-xl bg-paper-50 hover:bg-paper-100 text-sm text-ink-500 hover:text-ink-700 transition-all font-medium">
+                    显示更多（已加载 ${Math.min(r.displayLimit || 60, books.length)} / ${books.length} 本）
+                  </button>
+                </div>
+              ` : ''}
+            </div>
+          ` : ''}
+
+          <!-- 空状态 -->
+          ${!error && !loading && books.length === 0 && searchFilter ? `
+            <div class="bg-white rounded-2xl shadow-sm border border-paper-200 p-8 text-center">
+              <p class="text-ink-400">没有找到匹配"${searchFilter}"的书籍</p>
+            </div>
+          ` : ''}
+
+          ${!error && !loading && books.length === 0 && !searchFilter ? `
+            <div class="bg-white rounded-2xl shadow-sm border border-paper-200 p-8 text-center">
+              <div class="text-4xl mb-3">📭</div>
+              <p class="text-ink-600 mb-1">暂无数据</p>
+              <p class="text-sm text-ink-400">
+                ${r.platform === 'qidian'
+                  ? '起点中文网有较强的反爬机制，数据来自搜索引擎索引。如需更完整的起点排行榜，建议直接访问 <a href="https://www.qidian.com/rank/" target="_blank" class="text-tomato-500 hover:underline">qidian.com/rank</a>'
+                  : '番茄小说数据已通过官方动态API获取。试试切换「在读榜」或「新书榜」查看全分类数据！'
+                }
+              </p>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    // ==================== 高频爆款词云（后端驱动，自动分析） ====================
+    let _wordCloudData = null;
+    let _wordCloudSource = ''; // 'jieba' | 'ai' | ''
+    let _aiStatusPollTimer = null;  // AI 状态轮询定时器
+    let _aiDoneNotified = false;    // AI 完成通知是否已显示
+
+    function renderWordCloud(books) {
+      const r = state.rank;
+      const catLabel = r.category || '';
+
+      // 无数据
+      if (!_wordCloudData || _wordCloudData.length === 0) {
+        return `
+          <div>
+            <h3 class="text-base font-semibold text-ink-700 mb-3 flex items-center gap-2">
+              <span class="w-2 h-2 bg-orange-500 rounded-full"></span> 高频爆款元素
+              ${catLabel ? `<span class="text-xs font-normal text-tomato-600 ml-0.5">${catLabel}</span>` : ''}
+            </h3>
+            <div class="bg-gradient-to-br from-amber-50/80 via-orange-50/40 to-rose-50/30 rounded-2xl border border-paper-200/80 p-8 text-center shadow-sm">
+              <div class="inline-block w-5 h-5 border-2 border-tomato-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+              <p class="text-sm text-ink-400">正在分析高频元素<span class="animate-pulse">...</span></p>
+            </div>
+          </div>
+        `;
+      }
+
+      // 有数据：渲染词云
+      const sourceTag = _wordCloudSource === 'jieba'
+        ? '<span class="text-xs font-normal bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">基础词频</span>'
+        : '<span class="text-xs font-normal bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">AI 深度分析</span>';
+      return `
+        <div class="${r.platform === 'fanqie' ? 'fanqie-font' : ''}">
+          <h3 class="text-base font-semibold text-ink-700 mb-3 flex items-center justify-between">
+            <span class="flex items-center gap-2">
+              <span class="w-2 h-2 bg-orange-500 rounded-full"></span> 高频爆款元素
+              ${catLabel ? `<span class="text-xs font-normal text-tomato-600 ml-0.5">${catLabel}</span>` : ''}
+              ${sourceTag}
+            </span>
+          </h3>
+          <div class="bg-gradient-to-br from-amber-50/80 via-orange-50/40 to-rose-50/30 rounded-2xl border border-paper-200/80 p-2 md:p-3 shadow-sm">
+            <canvas id="canvas-wordcloud" style="width:100%;height:480px;"></canvas>
+          </div>
+        </div>
+      `;
+    }
+
+    // 从服务端加载关键词（优先 AI 缓存，回退 jieba）
+    async function loadJiebaKeywords() {
+      const r = state.rank;
+      const books = r.data?.books;
+      if (!books || books.length < 3) return;
+
+      // 构建 cache_key（和后端一致）
+      let baseKey;
+      if (r.platform === 'fanqie') {
+        const gender = r.type.startsWith('male') ? 'male' : 'female';
+        const rankType = r.type.endsWith('_read') ? 'read' : 'new';
+        baseKey = `fanqie_${rankType}_${gender}_`;
+      } else {
+        baseKey = `qidian_${r.type}`;
+      }
+      const cat = r.category || 'all';
+
+      try {
+        // 查询当前分类的关键词：优先 AI，回退 jieba
+        const resp = await apiGet(`/api/rankings/keywords?cache_key=${encodeURIComponent(baseKey)}&category=${encodeURIComponent(cat)}`);
+        if (resp.keywords) {
+          // resp.source: 'ai' | 'jieba' | 'none'
+          if (resp.source === 'ai') {
+            // AI 结果：{keywords: [{word, heat, score}]}
+            const kws = resp.keywords.keywords || resp.keywords;
+            if (Array.isArray(kws) && kws.length > 0) {
+              _wordCloudData = kws.map(k => [k.word, k.heat || k.score || 1]);
+              _wordCloudSource = 'ai';
+              render();
+              requestAnimationFrame(() => initWordCloud());
+              return;
+            }
+          }
+          // jieba 结果：{all: [...], 玄幻: [...], ...}
+          if (resp.source === 'jieba') {
+            const kw = resp.keywords;
+            // 优先当前分类，回退到全部
+            const target = (kw[cat] && kw[cat].length > 0) ? kw[cat] : (kw['all'] && kw['all'].length > 0 ? kw['all'] : null);
+            if (target) {
+              _wordCloudData = target.map(k => [k.word, k.heat || 1]);
+              _wordCloudSource = 'jieba';
+              render();
+              requestAnimationFrame(() => initWordCloud());
+            }
+          }
+        }
+
+        // 开始轮询 AI 分析状态
+        startAiStatusPoll(baseKey);
+      } catch (e) {
+        // 加载失败不影响正常使用
+      }
+    }
+
+    // 轮询 AI 分析状态，完成后自动刷新
+    function startAiStatusPoll(baseKey) {
+      if (_aiStatusPollTimer) clearInterval(_aiStatusPollTimer);
+      _aiDoneNotified = false;
+
+      const poll = async () => {
+        try {
+          const resp = await apiGet(`/api/rankings/ai-status?cache_key=${encodeURIComponent('ai_kw_' + baseKey)}`);
+          const statuses = resp || {};
+
+          // 找出所有匹配的分类
+          const entries = Object.entries(statuses);
+          if (entries.length === 0) return;
+
+          const allDone = entries.every(([, v]) => v.status === 'done');
+          const anyRunning = entries.some(([, v]) => v.status === 'running');
+
+          if (allDone && !_aiDoneNotified) {
+            _aiDoneNotified = true;
+            clearInterval(_aiStatusPollTimer);
+            _aiStatusPollTimer = null;
+
+            // AI 全部分析完成，刷新当前分类数据
+            showToast('AI 词云分析全部完成，数据已更新', 'success');
+            await refreshCurrentWordCloud();
+          } else if (!anyRunning && entries.some(([, v]) => v.status === 'error')) {
+            // 有错误但没有在跑的，停止轮询（可能没有 API key）
+            clearInterval(_aiStatusPollTimer);
+            _aiStatusPollTimer = null;
+          }
+        } catch (e) {
+          // 轮询失败静默处理
+        }
+      };
+
+      // 每 10 秒轮询一次
+      _aiStatusPollTimer = setInterval(poll, 10000);
+      // 立即执行一次
+      poll();
+    }
+
+    // 刷新当前分类的词云数据
+    async function refreshCurrentWordCloud() {
+      const r = state.rank;
+      let baseKey;
+      if (r.platform === 'fanqie') {
+        const gender = r.type.startsWith('male') ? 'male' : 'female';
+        const rankType = r.type.endsWith('_read') ? 'read' : 'new';
+        baseKey = `fanqie_${rankType}_${gender}_`;
+      } else {
+        baseKey = `qidian_${r.type}`;
+      }
+      const cat = r.category || 'all';
+
+      try {
+        const resp = await apiGet(`/api/rankings/keywords?cache_key=${encodeURIComponent(baseKey)}&category=${encodeURIComponent(cat)}`);
+        if (resp.source === 'ai' && resp.keywords) {
+          const kws = resp.keywords.keywords || resp.keywords;
+          if (Array.isArray(kws) && kws.length > 0) {
+            _wordCloudData = kws.map(k => [k.word, k.heat || k.score || 1]);
+            _wordCloudSource = 'ai';
+            render();
+            requestAnimationFrame(() => initWordCloud());
+            return;
+          }
+        }
+        // AI 没有结果，回退 jieba
+        if (resp.source === 'jieba' && resp.keywords) {
+          const kw = resp.keywords;
+          const target = (kw[cat] && kw[cat].length > 0) ? kw[cat] : (kw['all'] && kw['all'].length > 0 ? kw['all'] : null);
+          if (target) {
+            _wordCloudData = target.map(k => [k.word, k.heat || 1]);
+            _wordCloudSource = 'jieba';
+            render();
+            requestAnimationFrame(() => initWordCloud());
+          }
+        }
+      } catch (e) {}
+    }
+
+    // 分类切换时加载对应词云
+    function switchWordCloudCategory(category) {
+      const r = state.rank;
+      const books = r.data?.books;
+      if (!books || books.length < 3) return;
+
+      const cat = category || 'all';
+      const filtered = cat === 'all' ? books : books.filter(b => b.sub_category === cat);
+      if (filtered.length < 3) {
+        _wordCloudData = null;
+        render();
+        return;
+      }
+
+      // 构建缓存 key 查询
+      let baseKey;
+      if (r.platform === 'fanqie') {
+        const gender = r.type.startsWith('male') ? 'male' : 'female';
+        const rankType = r.type.endsWith('_read') ? 'read' : 'new';
+        baseKey = `fanqie_${rankType}_${gender}_`;
+      } else {
+        baseKey = `qidian_${r.type}`;
+      }
+
+      // 尝试从后端获取该分类的关键词（保留旧词云做过渡，不闪loading）
+      apiGet(`/api/rankings/keywords?cache_key=${encodeURIComponent(baseKey)}&category=${encodeURIComponent(cat)}`).then(resp => {
+        if (resp.source === 'ai' && resp.keywords) {
+          const kws = resp.keywords.keywords || resp.keywords;
+          if (Array.isArray(kws) && kws.length > 0) {
+            _wordCloudData = kws.map(k => [k.word, k.heat || k.score || 1]);
+            _wordCloudSource = 'ai';
+            render();
+            requestAnimationFrame(() => initWordCloud());
+            return;
+          }
+        }
+        if (resp.source === 'jieba' && resp.keywords) {
+          const kw = resp.keywords;
+          // 优先当前分类，回退到全部
+          const target = (kw[cat] && kw[cat].length > 0) ? kw[cat] : (kw['all'] && kw['all'].length > 0 ? kw['all'] : null);
+          if (target) {
+            _wordCloudData = target.map(k => [k.word, k.heat || 1]);
+            _wordCloudSource = 'jieba';
+            render();
+            requestAnimationFrame(() => initWordCloud());
+          }
+        }
+      }).catch(() => {});
+    }
+
+    function initWordCloud() {
+      const canvas = document.getElementById('canvas-wordcloud');
+      if (!canvas || !_wordCloudData || _wordCloudData.length === 0) return;
+
+      // 设置 canvas 实际像素尺寸
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * (window.devicePixelRatio || 1);
+      canvas.height = rect.height * (window.devicePixelRatio || 1);
+
+      const maxWeight = _wordCloudData[0][1];
+      const minWeight = _wordCloudData[_wordCloudData.length - 1][1];
+      const isFanqie = state.rank.platform === 'fanqie';
+      const palette = [
+        '#b91c1c','#c2410c','#b45309','#a16207',
+        '#4d7c0f','#15803d','#0f766e','#0369a1',
+        '#6d28d9','#a21caf','#be123c','#881337',
+      ];
+
+      try {
+        WordCloud(canvas, {
+          list: _wordCloudData,
+          gridSize: Math.round(8 * (window.devicePixelRatio || 1)),
+          weightFactor: function(size) {
+            return Math.max(16, Math.round((size / maxWeight) * 68 * (window.devicePixelRatio || 1)));
+          },
+          fontFamily: isFanqie
+            ? "'DNMrHsV173Pd4pgy', 'Noto Sans SC', 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif"
+            : "'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif",
+          fontWeight: function(word, weight) {
+            const ratio = weight / maxWeight;
+            return ratio > 0.6 ? '800' : ratio > 0.3 ? '600' : '400';
+          },
+          color: function(word, weight) {
+            const idx = _wordCloudData.findIndex(d => d[0] === word);
+            return palette[idx % palette.length];
+          },
+          rotateRatio: 0,
+          backgroundColor: 'transparent',
+          drawOutOfBound: false,
+          shrinkToFit: true,
+          shuffle: true,
+        });
+      } catch (e) {
+        // canvas 尺寸太小时 wordcloud2 会报错，忽略
+      }
+    }
+
+    // ==================== 总览模式渲染 ====================
+    function renderOverviewTab() {
+      const r = state.rank;
+      const data = r.data;
+
+      // 还没加载数据
+      if (!data || !data.books || data.books.length === 0) {
+        return `
+          <div class="bg-white rounded-2xl shadow-sm border border-paper-200 p-8 text-center">
+            <p class="text-ink-400">暂无数据，请先加载一个榜单</p>
+          </div>
+        `;
+      }
+
+      const platformName = r.platform === 'fanqie' ? '番茄小说' : '起点中文网';
+      const types = RANK_TYPES[r.platform];
+      const typeLabel = types.find(t => t.value === r.type)?.label || r.type;
+      const books = data.books;
+      const categories = aggregateByCategory(books);
+      const genderGroups = groupByGender(categories);
+
+      const isHistorical = !!data.is_historical;
+      const viewDateLabel = isHistorical ? (data.historical_date || r.viewingDate) : null;
+
+      let dateSelectorHTML = '';
+      if (r.historicalDates.length > 0) {
+        const today = new Date().toISOString().slice(0, 10);
+        dateSelectorHTML = `
+          <div class="flex items-center gap-2 mt-2">
+            <span class="text-xs text-ink-400">历史数据:</span>
+            <div class="flex gap-1.5 flex-wrap">
+              ${r.historicalDates.slice(0, 10).map(d => {
+                const isActive = viewDateLabel === d.date;
+                return `<button onclick="loadHistoricalData('${d.date}')" class="px-2 py-1 rounded-md text-xs font-medium transition-all ${isActive ? 'bg-tomato-500 text-white shadow-sm' : 'bg-paper-100 hover:bg-paper-200 text-ink-500'}">${d.date.slice(5)}</button>`;
+              }).join('')}
+              ${viewDateLabel ? `<button onclick="switchToToday()" class="px-2 py-1 rounded-md text-xs font-medium bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-all">← 今天</button>` : ''}
+            </div>
+          </div>`;
+      }
+
+      let html = `
+        <div class="bg-white rounded-2xl shadow-sm border border-paper-200 overflow-hidden">
+          <div class="px-6 py-4 border-b border-paper-200">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h2 class="text-lg font-semibold text-ink-800 font-serif">📊 ${typeLabel} · 总览 ${viewDateLabel ? `<span class="text-sm font-normal text-ink-400 ml-2">( ${viewDateLabel} )</span>` : ''}</h2>
+                <p class="text-sm text-ink-400 mt-0.5">${platformName} · 共 ${books.length} 本 · ${categories.length} 个分类${data.update_time ? ' · ' + data.update_time + ' 更新' : ''}</p>
+              </div>
+            </div>
+            ${dateSelectorHTML}
+          </div>
+          <div class="p-4 md:p-6 space-y-6">
+            <!-- 概览统计卡片 -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              ${renderStatCard('📚', '总书籍数', books.length)}
+              ${renderStatCard('📂', '分类数', categories.length)}
+              ${renderStatCard('👁️', '总阅读量', formatNumber(books.reduce((s, b) => s + (b.read_count || 0), 0)))}
+              ${renderStatCard('📊', '平均字数', formatNumber(Math.round(books.reduce((s, b) => s + (b.word_count || 0), 0) / books.length)))}
+            </div>
+
+            <!-- 阅读量 Top 10 书籍 -->
+            <div style="height: 320px;">
+              <canvas id="chart-overview-top10"></canvas>
+            </div>
+
+            <!-- 字数分布 -->
+            <div style="height: 260px;">
+              <canvas id="chart-overview-worddist"></canvas>
+            </div>
+
+            <!-- 单书诊断器 -->
+            ${renderOverviewCategoryBar(books)}
+            ${renderDiagnosticCard(books)}
+
+            <!-- 高频爆款词云 -->
+            ${renderWordCloud(books)}
+      `;
+
+      // 男频分类图表
+      if (genderGroups.male.length > 0) {
+        html += `
+            <!-- 男频分类 -->
+            <div>
+              <h3 class="text-base font-semibold text-ink-700 mb-3 flex items-center gap-2">
+                <span class="w-2 h-2 bg-blue-500 rounded-full"></span> 男频分类
+              </h3>
+              <div style="height: ${Math.max(200, genderGroups.male.length * 25)}px;">
+                <canvas id="chart-overview-male-minmax"></canvas>
+              </div>
+              <div style="height: ${Math.max(200, genderGroups.male.length * 25)}px;" class="mt-4">
+                <canvas id="chart-overview-male"></canvas>
+              </div>
+            </div>
+        `;
+      }
+
+      // 女频分类图表
+      if (genderGroups.female.length > 0) {
+        html += `
+            <!-- 女频分类 -->
+            <div>
+              <h3 class="text-base font-semibold text-ink-700 mb-3 flex items-center gap-2">
+                <span class="w-2 h-2 bg-pink-500 rounded-full"></span> 女频分类
+              </h3>
+              <div style="height: ${Math.max(200, genderGroups.female.length * 25)}px;">
+                <canvas id="chart-overview-female-minmax"></canvas>
+              </div>
+              <div style="height: ${Math.max(200, genderGroups.female.length * 25)}px;" class="mt-4">
+                <canvas id="chart-overview-female"></canvas>
+              </div>
+            </div>
+        `;
+      }
+
+      html += `</div></div>`;
+      return html;
+    }
+
+    function renderStatCard(icon, label, value) {
+      return `
+        <div class="bg-paper-50 rounded-xl p-3 text-center">
+          <div class="text-lg mb-1">${icon}</div>
+          <div class="text-xs text-ink-400">${label}</div>
+          <div class="text-sm font-semibold text-ink-800 mt-0.5">${value}</div>
+        </div>
+      `;
+    }
+
+    // ==================== 总览分类栏 ====================
+    function renderOverviewCategoryBar(books) {
+      if (state.rank.platform !== 'fanqie') return '';
+      const allCats = [...new Set(books.map(b => b.sub_category).filter(Boolean))].sort();
+      if (!allCats.length) return '';
+      const r = state.rank;
+      return `
+        <div class="${r.platform === 'fanqie' ? 'fanqie-font' : ''}">
+          <div class="flex flex-wrap items-center gap-2">
+            <button data-category="" class="category-btn px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${!r.category ? 'bg-tomato-500 text-white shadow-sm' : 'bg-paper-100 text-ink-600 hover:bg-paper-200'}">
+              全部 (${books.length})
+            </button>
+            ${allCats.map(cat => {
+              const count = books.filter(b => b.sub_category === cat).length;
+              return `
+                <button data-category="${cat}" class="category-btn px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${r.category === cat ? 'bg-tomato-500 text-white shadow-sm' : 'bg-paper-100 text-ink-600 hover:bg-paper-200'}">
+                  ${cat} (${count})
+                </button>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // ==================== 单书诊断器 ====================
+    function renderDiagnosticCard(books) {
+      // 和普通榜单完全一致的过滤逻辑
+      let filtered = state.rank.category
+        ? books.filter(b => b.sub_category === state.rank.category)
+        : books;
+      // "全部"视图也和榜单一样按阅读量排序，取同样的数量范围
+      if (!state.rank.category) {
+        filtered = [...filtered].sort((a, b) => (b.read_count || 0) - (a.read_count || 0));
+      }
+      const displayLimit = state.rank.displayLimit || 60;
+      filtered = filtered.slice(0, displayLimit);
+
+      // 计算效率指数，过滤掉字数为0的
+      const diagnosed = filtered.map(b => {
+        const wc_wan = (b.word_count || 0) / 10000;
+        const efficiency = wc_wan > 0 ? Math.round((b.read_count || 0) / wc_wan) : 0;
+        return { ...b, _eff: efficiency };
+      }).filter(b => b._eff > 0).sort((a, b) => b._eff - a._eff || (b.read_count || 0) - (a.read_count || 0));
+
+      const top = diagnosed;
+      const hasTrend = top.some(b => b.trend && b.trend !== 'unknown');
+      const hasYesterday = top.some(b => b.trend && b.trend !== 'unknown' && b.trend !== 'new');
+
+      // 趋势统计
+      let upCount = 0, downCount = 0, stableCount = 0, newCount = 0, unknownCount = 0;
+      top.forEach(b => {
+        if (b.trend === 'up') upCount++;
+        else if (b.trend === 'down') downCount++;
+        else if (b.trend === 'stable') stableCount++;
+        else if (b.trend === 'new') newCount++;
+        else unknownCount++;
+      });
+
+      // 效率等级颜色（原色+文字阴影）
+      function effColor(e) {
+        if (e >= 500) return 'text-emerald-600 bg-emerald-50';
+        if (e >= 200) return 'text-blue-600 bg-blue-50';
+        if (e >= 100) return 'text-amber-600 bg-amber-50';
+        return 'text-ink-500 bg-paper-100';
+      }
+
+      // 趋势图标（红灰绿三色）
+      function trendIcon(t) {
+        switch(t) {
+          case 'up': return '<span class="inline-flex items-center gap-0.5 text-red-500 text-xs font-semibold" style="text-shadow:0 0 6px rgba(239,68,68,0.3)"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>飙升</span>';
+          case 'down': return '<span class="inline-flex items-center gap-0.5 text-green-600 text-xs font-semibold" style="text-shadow:0 0 6px rgba(22,163,74,0.3)"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 4.5l15 15m0 0V8.25m0 11.25H8.25"/></svg>下滑</span>';
+          case 'stable': return '<span class="inline-flex items-center gap-0.5 text-gray-500 text-xs font-semibold" style="text-shadow:0 0 6px rgba(107,114,128,0.25)">— 平稳</span>';
+          case 'new': return '<span class="inline-flex items-center gap-0.5 text-green-600 text-xs font-semibold" style="text-shadow:0 0 6px rgba(22,163,74,0.3)">✦ 新上榜</span>';
+          case 'unknown': return '<span class="text-xs text-ink-300 italic" title="昨日快照中无此书">— 无昨日数据</span>';
+          default: return '';
+        }
+      }
+
+      // 折叠状态摘要（Top 3）
+      const top3 = top.slice(0, 3);
+      const summaryHTML = top3.length ? top3.map((b, i) => {
+        const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+        return `<span class="inline-flex items-center gap-1 text-xs">${medal}<span class="text-ink-700 font-medium truncate max-w-[120px] sm:max-w-[180px]" title="${(b.title||'').replace(/"/g,'&quot;')}">${b.title}</span><span class="${effColor(b._eff)} px-1.5 py-0.5 rounded text-[11px] font-bold flex-shrink-0">${b._eff}<span class="font-normal text-[9px] ml-0.5 opacity-60">人/万</span></span></span>`;
+      }).join('<span class="text-ink-200 hidden sm:inline">|</span>') : '<span class="text-xs text-ink-400">暂无数据</span>';
+
+      // 展开/收起按钮
+      const expanded = state.diagnosticExpanded;
+      const toggleBtn = `<button id="diag-toggle" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${expanded ? 'bg-paper-200 text-ink-500 hover:bg-paper-300' : 'bg-tomato-50 text-tomato-600 hover:bg-tomato-100'}">
+        <svg class="w-3.5 h-3.5 transition-transform ${expanded ? 'rotate-180' : ''}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
+        ${expanded ? '收起' : '展开详情'}
+      </button>`;
+
+      let rows = '';
+      top.forEach((b, i) => {
+        const rank = i + 1;
+        const rankBadge = rank <= 3
+          ? `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold text-white ${rank===1?'bg-gradient-to-br from-amber-400 to-amber-500':rank===2?'bg-gradient-to-br from-gray-300 to-gray-400':'bg-gradient-to-br from-amber-600 to-amber-700'}">${rank}</span>`
+          : `<span class="inline-flex items-center justify-center w-6 h-6 text-xs text-ink-400 font-medium">${rank}</span>`;
+
+        const coverUrl = b.cover || '';
+        const hasCover = coverUrl.startsWith('http');
+        const bookUrl = b.url || '#';
+        rows += `
+          <tr class="border-b border-paper-100 last:border-0 hover:bg-paper-50/50 transition-colors">
+            <td class="py-2.5 pr-2 text-center">${rankBadge}</td>
+            <td class="py-2.5 pr-2 text-center">${rankChangeHTML(b)}</td>
+            <td class="py-2 pr-1.5">
+              <div onclick="openBookDetail('${b.id}')" class="cursor-pointer w-10 h-14 rounded-md overflow-hidden bg-paper-100 hover:opacity-90 transition-opacity">
+                ${hasCover ? `<img src="${coverUrl}" alt="" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">` : ''}
+              </div>
+            </td>
+            <td class="py-2.5 pr-3">
+              <span onclick="openBookDetail('${b.id}')" class="text-sm font-medium text-ink-800 hover:text-tomato-600 transition-colors truncate block max-w-[160px] sm:max-w-[220px] cursor-pointer" title="${(b.title||'').replace(/"/g,'&quot;')}">${b.title}</span>
+              <div class="text-xs text-ink-400 mt-0.5">${b.sub_category || b.category || ''} · ${(b.author||'').replace(/"/g,'&quot;')}</div>
+            </td>
+            <td class="py-2.5 pr-3 text-right">
+              <span class="inline-block px-2 py-0.5 rounded-md text-xs font-bold ${effColor(b._eff)}">${b._eff}<span class="font-normal text-[10px] ml-0.5 opacity-70">人/万字</span></span>
+            </td>
+            <td class="py-2.5 pr-3 text-right whitespace-nowrap">${b.trend ? trendIcon(b.trend) : '<span class="text-xs text-ink-300 italic">— 无快照</span>'}</td>
+            <td class="py-2.5 pr-2 text-right text-xs text-ink-500 whitespace-nowrap">${formatNumber(b.read_count||0)}</td>
+            <td class="py-2.5 text-right text-xs text-ink-400 whitespace-nowrap">${b.word_display || formatNumber(b.word_count||0)}</td>
+          </tr>
+        `;
+      });
+
+      return `
+        <div class="${state.rank.platform === 'fanqie' ? 'fanqie-font' : ''}">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-base font-semibold text-ink-700 flex items-center gap-2">
+              <span class="w-2 h-2 bg-emerald-500 rounded-full"></span> 单书诊断器
+              ${state.rank.category ? `<span class="text-xs font-normal text-tomato-600 ml-0.5">${state.rank.category}</span>` : ''}
+              <span class="text-xs font-normal text-ink-400 ml-1">效率指数 = 在读人数 ÷ 总字数</span>
+            </h3>
+            ${hasYesterday ? `
+              <div class="flex items-center gap-3 text-xs text-ink-400">
+                ${upCount ? `<span class="text-emerald-600">↑${upCount} 飙升</span>` : ''}
+                ${downCount ? `<span class="text-red-500">↓${downCount} 下滑</span>` : ''}
+                ${stableCount ? `<span>—${stableCount} 平稳</span>` : ''}
+                ${newCount ? `<span class="text-violet-500">✦${newCount} 新上榜</span>` : ''}
+                ${unknownCount ? `<span class="text-ink-300">?${unknownCount} 无昨日数据</span>` : ''}
+              </div>
+            ` : `
+              <span class="text-xs text-ink-400">需连续两天数据才能显示趋势 ↗</span>
+            `}
+          </div>
+
+          <!-- 摘要条（始终可见） -->
+          <div class="flex items-center justify-between gap-3 bg-paper-50 rounded-xl border border-paper-200 px-4 py-3 mb-2">
+            <div class="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
+              <span class="text-xs text-ink-400 flex-shrink-0">共 <strong class="text-ink-600">${filtered.length}</strong> 本${top.length < filtered.length ? ` · <span class="text-emerald-600">${top.length}</span>` : ''}</span>
+              <div class="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
+                ${summaryHTML}
+              </div>
+            </div>
+            ${toggleBtn}
+          </div>
+
+          <!-- 详细表格（展开时显示） -->
+          ${expanded ? `
+          <div class="overflow-x-auto rounded-xl border border-paper-200">
+            <table class="w-full text-left">
+              <thead>
+                <tr class="bg-paper-50 text-xs text-ink-500 uppercase tracking-wider">
+                  <th class="py-2 px-2 text-center w-10">#</th>
+                  <th class="py-2 px-2 text-center w-14">变化</th>
+                  <th class="py-2 px-1 w-11"></th>
+                  <th class="py-2 px-3">书名</th>
+                  <th class="py-2 px-3 text-right">效率指数</th>
+                  <th class="py-2 px-3 text-right">阅读趋势</th>
+                  <th class="py-2 px-2 text-right">在读</th>
+                  <th class="py-2 px-2 text-right">字数</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y-0">${rows}</tbody>
+            </table>
+          </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    // ==================== 书籍详情面板 ====================
+    function renderBookDetailModal() {
+      const b = state.bookDetail;
+      if (!b) return '';
+
+      const coverUrl = b.cover || '';
+      const hasCover = coverUrl.startsWith('http');
+      const bookUrl = b.url || '#';
+      const platform = b.source || '番茄';
+      const intro = (b.intro || '暂无简介').replace(/\\n/g, '\n');
+      const wordStr = b.word_display || formatNumber(b.word_count || 0);
+      const readStr = b.read_display || formatNumber(b.read_count || 0);
+      const displayRank = state.bookDetailRank || b.rank || '-';
+      const eff = b.word_count > 0 ? Math.round((b.read_count || 0) / (b.word_count / 10000)) : 0;
+
+      // 获取当前榜单标签，用于面包屑
+      const r = state.rank;
+      const rankLabel = r.data?.title || '榜单';
+
+      return `
+        <div class="tab-content animate-fade-in ${b.source === '番茄' ? 'fanqie-font' : ''}">
+          <!-- 面包屑导航 -->
+          <div class="flex items-center gap-2 mb-6">
+            <button onclick="closeBookDetail()" class="flex items-center gap-1 text-sm text-ink-400 hover:text-tomato-600 transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+              返回榜单
+            </button>
+            <span class="text-paper-300">/</span>
+            <span class="text-sm text-ink-500 truncate max-w-[200px]">${rankLabel}</span>
+            <span class="text-paper-300">/</span>
+            <span class="text-sm text-ink-700 font-medium truncate max-w-[200px]">${b.title || ''}</span>
+          </div>
+
+          <!-- 主内容 -->
+          <div class="bg-white rounded-2xl shadow-sm border border-paper-200 overflow-hidden">
+            <!-- 头部：封面 + 基本信息 -->
+            <div class="p-6 sm:p-8">
+              <div class="flex gap-5 sm:gap-6">
+                ${hasCover ? `
+                <div class="flex-shrink-0 w-32 h-[180px] sm:w-36 sm:h-[200px] rounded-xl overflow-hidden shadow-lg bg-paper-50">
+                  <img src="${coverUrl}" alt="" class="w-full h-full object-cover">
+                </div>
+                ` : '<div class="flex-shrink-0 w-32 h-[180px] sm:w-36 sm:h-[200px] rounded-xl bg-paper-100 flex items-center justify-center text-ink-300 text-4xl">📖</div>'}
+                <div class="flex-1 min-w-0 py-1">
+                  <h1 class="text-xl sm:text-2xl font-bold text-ink-900 leading-snug">${b.title || '未知书名'}</h1>
+                  <p class="text-sm sm:text-base text-ink-500 mt-2">${b.author || '未知作者'}</p>
+                  <div class="flex flex-wrap gap-2 mt-3">
+                    ${b.sub_category || b.category ? `<span class="px-2.5 py-1 rounded-lg text-xs font-medium bg-tomato-50 text-tomato-600">${b.sub_category || b.category}</span>` : ''}
+                    <span class="px-2.5 py-1 rounded-lg text-xs font-medium bg-paper-100 text-ink-500">${platform}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 数据卡片 -->
+            <div class="px-6 sm:px-8 pb-6">
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="bg-paper-50 rounded-xl p-4 text-center">
+                  <div class="text-xs text-ink-400">字数</div>
+                  <div class="text-base font-bold text-ink-800 mt-1">${wordStr}</div>
+                </div>
+                <div class="bg-paper-50 rounded-xl p-4 text-center">
+                  <div class="text-xs text-ink-400">在读人数</div>
+                  <div class="text-base font-bold text-ink-800 mt-1">${readStr}</div>
+                </div>
+                <div class="bg-paper-50 rounded-xl p-4 text-center">
+                  <div class="text-xs text-ink-400">当前排名</div>
+                  <div class="text-base font-bold text-ink-800 mt-1">第${displayRank}名</div>
+                </div>
+                <div class="bg-paper-50 rounded-xl p-4 text-center">
+                  <div class="text-xs text-ink-400">效率</div>
+                  <div class="text-base font-bold text-ink-800 mt-1">${eff > 0 ? eff + '<span class="text-xs font-normal text-ink-400 ml-0.5">人/万字</span>' : '-'}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 分割线 -->
+            <div class="border-t border-paper-100"></div>
+
+            <!-- 详情内容 -->
+            <div class="px-6 sm:px-8 py-6 space-y-6">
+              ${b.last_chapter ? `
+              <div>
+                <div class="flex items-center gap-1.5 text-xs font-medium text-ink-400 uppercase tracking-wider mb-2">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
+                  最新章节
+                </div>
+                <div class="text-sm text-ink-700">${b.last_chapter}</div>
+              </div>
+              ` : ''}
+
+              <div>
+                <div class="text-xs font-medium text-ink-400 uppercase tracking-wider mb-2">内容简介</div>
+                <div class="text-sm text-ink-600 leading-relaxed whitespace-pre-line">${intro}</div>
+              </div>
+
+              ${(b.rank_trend && b.rank_trend !== 'unknown') || (b.trend && b.trend !== 'unknown') ? `
+              <div class="flex flex-wrap gap-4">
+                ${b.rank_trend && b.rank_trend !== 'unknown' ? `
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-ink-400">排名变化：</span>
+                  <span class="text-sm text-ink-600">${b.rank_trend_label || ''}</span>
+                </div>
+                ` : ''}
+                ${b.trend && b.trend !== 'unknown' ? `
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-ink-400">阅读量趋势：</span>
+                  <span class="text-sm text-ink-600">${b.trend_label || ''}</span>
+                </div>
+                ` : ''}
+              </div>
+              ` : ''}
+            </div>
+
+            <!-- 底部操作 -->
+            <div class="border-t border-paper-100 px-6 sm:px-8 py-5">
+              <a href="${bookUrl}" target="_blank" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium bg-tomato-500 text-white hover:bg-tomato-600 transition-colors shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+                在${platform}打开
+              </a>
+            </div>
+          </div>
+        </div>
+        <style>
+          @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+          .animate-fade-in { animation: fade-in 0.2s ease-out; }
+        </style>
+      `;
+    }
+
+    function openBookDetail(bookId) {
+      const books = state.rank.data?.books || [];
+      const book = books.find(b => b.id === bookId || b.id === String(bookId));
+      if (book) {
+        // 计算当前榜单展示排名（与 renderMarketTab 的排序/过滤逻辑一致）
+        let displayBooks = [...books];
+        const r = state.rank;
+        if (r.category) {
+          displayBooks = displayBooks.filter(b => b.sub_category === r.category);
+        } else {
+          displayBooks.sort((a, b) => (b.read_count || 0) - (a.read_count || 0));
+        }
+        const idx = displayBooks.findIndex(b => b.id === bookId || b.id === String(bookId));
+        state.bookDetailRank = idx >= 0 ? idx + 1 : book.rank;
+        state.bookDetail = book;
+        render();
+      }
+    }
+
+    function closeBookDetail() {
+      state.bookDetail = null;
+      state.bookDetailRank = null;
+      render();
+    }
+
+    // ==================== 拆书页面 ====================
+    function renderAnalyzeTab() {
+      const a = state.analyze;
+
+      return `
+        <div class="tab-content">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- 左侧: 控制面板 -->
+            <div class="lg:col-span-1 space-y-4">
+              <!-- 文件上传 -->
+              <div class="bg-white rounded-2xl shadow-sm border border-paper-200 p-6">
+                <h3 class="text-base font-semibold text-ink-800 mb-4 flex items-center gap-2">
+                  <span class="text-lg">📄</span> 上传小说
+                </h3>
+
+                <div id="drop-zone" class="drop-zone rounded-xl p-8 text-center cursor-pointer hover:border-tomato-300 transition-all">
+                  ${a.fileName ? `
+                    <div class="space-y-2">
+                      <div class="text-3xl">📖</div>
+                      <p class="text-sm font-semibold text-ink-800">${a.fileName}</p>
+                      <p class="text-xs text-ink-400">${formatSize(a.fileSize)} · 约${a.chapters}章</p>
+                      <p class="text-xs text-tomato-500 mt-2">点击或拖拽新文件以替换</p>
+                    </div>
+                  ` : `
+                    <div class="space-y-2">
+                      <div class="text-3xl">📁</div>
+                      <p class="text-sm font-medium text-ink-600">拖拽 TXT 文件到此处</p>
+                      <p class="text-xs text-ink-400">或点击选择文件（支持 50MB 以内）</p>
+                    </div>
+                  `}
+                </div>
+                <input type="file" id="file-input" accept=".txt,.text" class="hidden" />
+              </div>
+
+              <!-- 分析模块 -->
+              <div class="bg-white rounded-2xl shadow-sm border border-paper-200 p-6">
+                <h3 class="text-base font-semibold text-ink-800 mb-4 flex items-center gap-2">
+                  <span class="text-lg">🎯</span> 分析模块
+                </h3>
+                <div class="space-y-2.5">
+                  ${[
+                    { key: 'core', label: '全书核心', desc: '核心梗、爽点、金手指、世界观', icon: '💎' },
+                    { key: 'characters', label: '核心人设', desc: '主角身份、性格、配角功能', icon: '👤' },
+                    { key: 'firstChapter', label: '第一章精析', desc: '开篇手法、冲突、钩子设计', icon: '🚀' },
+                    { key: 'pacing', label: '章节节奏', desc: '情绪曲线、爽点间隔、冲突升级', icon: '🌊' },
+                    { key: 'techniques', label: '技法拆解', desc: '对话、爽词、打脸公式', icon: '🔧' },
+                    { key: 'outline', label: '大纲还原', desc: '结构、伏笔、可复用模板', icon: '📋' },
+                  ].map(m => `
+                    <label class="flex items-start gap-3 p-2 rounded-lg hover:bg-paper-50 cursor-pointer transition-colors">
+                      <input type="checkbox" data-module="${m.key}" ${a.modules[m.key] ? 'checked' : ''}
+                        class="mt-0.5 w-4 h-4 rounded border-paper-300 text-tomato-500 focus:ring-tomato-400" />
+                      <div>
+                        <span class="text-sm font-medium text-ink-700">${m.icon} ${m.label}</span>
+                        <p class="text-xs text-ink-400">${m.desc}</p>
+                      </div>
+                    </label>
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- 操作按钮 -->
+              <div class="bg-white rounded-2xl shadow-sm border border-paper-200 p-6 space-y-3">
+                ${a.step === 'idle' ? `
+                  <button id="btn-start-analysis" class="w-full py-3 bg-tomato-500 hover:bg-tomato-600 text-white rounded-xl font-semibold text-sm shadow-lg shadow-tomato-200 transition-all hover:shadow-tomato-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    ${!a.fileContent ? 'disabled' : ''}>
+                    🔬 开始拆书分析
+                  </button>
+                ` : ''}
+
+                ${a.step === 'analyzing' ? `
+                  <div class="space-y-3">
+                    <div class="flex items-center justify-between text-sm">
+                      <span class="text-ink-600">${a.message}</span>
+                      <span class="text-tomato-600 font-semibold">${a.progress}%</span>
+                    </div>
+                    <div class="w-full bg-paper-200 rounded-full h-2.5 overflow-hidden">
+                      <div class="h-full progress-shimmer rounded-full transition-all duration-500" style="width: ${a.progress}%"></div>
+                    </div>
+                    ${a.currentPhase ? `
+                      <p class="text-xs text-ink-400 text-center">当前阶段：${a.currentPhase === 'phase1' ? '结构概览' : a.currentPhase === 'phase2' ? '技法分析' : '综合报告'}</p>
+                    ` : ''}
+                    <button id="btn-stop-analysis" class="w-full py-2.5 bg-paper-100 hover:bg-paper-200 text-ink-600 rounded-xl text-sm transition-all">
+                      ⏹ 停止分析
+                    </button>
+                  </div>
+                ` : ''}
+
+                ${a.step === 'complete' ? `
+                  <div class="space-y-3">
+                    <div class="flex items-center gap-2 text-green-600">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                      <span class="font-medium text-sm">分析完成！</span>
+                    </div>
+                    ${a.stats.total_chapters ? `
+                      <div class="grid grid-cols-3 gap-2 text-center">
+                        <div class="bg-paper-50 rounded-lg p-2">
+                          <p class="text-lg font-bold text-ink-800">${a.stats.total_chapters}</p>
+                          <p class="text-xs text-ink-400">总章数</p>
+                        </div>
+                        <div class="bg-paper-50 rounded-lg p-2">
+                          <p class="text-lg font-bold text-ink-800">${a.stats.chunks}</p>
+                          <p class="text-xs text-ink-400">分析块</p>
+                        </div>
+                        <div class="bg-paper-50 rounded-lg p-2">
+                          <p class="text-lg font-bold text-ink-800">${(a.stats.total_chars / 10000).toFixed(1)}万</p>
+                          <p class="text-xs text-ink-400">总字数</p>
+                        </div>
+                      </div>
+                    ` : ''}
+                    <div class="flex gap-2">
+                      <button id="btn-export-pdf" class="flex-1 py-2.5 bg-tomato-500 hover:bg-tomato-600 text-white rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-1.5">
+                        📑 导出 PDF
+                      </button>
+                      <button id="btn-new-analysis" class="flex-1 py-2.5 bg-paper-100 hover:bg-paper-200 text-ink-600 rounded-xl text-sm font-medium transition-all">
+                        📖 分析新书
+                      </button>
+                    </div>
+                  </div>
+                ` : ''}
+
+                ${a.step === 'error' ? `
+                  <div class="text-center">
+                    <p class="text-red-500 text-sm mb-3">${a.message}</p>
+                    <button id="btn-retry" class="w-full py-2.5 bg-tomato-500 hover:bg-tomato-600 text-white rounded-xl text-sm transition-all">
+                      🔄 重试
+                    </button>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+
+            <!-- 右侧: 结果展示 -->
+            <div class="lg:col-span-2">
+              ${a.step === 'idle' && !a.result ? `
+                <div class="bg-white rounded-2xl shadow-sm border border-paper-200 p-12 text-center h-full flex flex-col items-center justify-center">
+                  <div class="text-6xl mb-4">📖</div>
+                  <h3 class="text-xl font-semibold text-ink-700 mb-2 font-serif">智能拆书分析</h3>
+                  <p class="text-sm text-ink-400 max-w-md">
+                    上传小说文件，AI 将自动拆分为多个部分进行深度分析。<br/>
+                    使用 DeepSeek 深度思考模式，输出完整的拆书报告。
+                  </p>
+                  <div class="mt-6 grid grid-cols-2 gap-3 max-w-sm w-full">
+                    <div class="bg-paper-50 rounded-lg p-3 text-center">
+                      <p class="text-2xl mb-1">🧠</p>
+                      <p class="text-xs text-ink-500">深度思考模式</p>
+                    </div>
+                    <div class="bg-paper-50 rounded-lg p-3 text-center">
+                      <p class="text-2xl mb-1">📊</p>
+                      <p class="text-xs text-ink-500">三阶段分析</p>
+                    </div>
+                    <div class="bg-paper-50 rounded-lg p-3 text-center">
+                      <p class="text-2xl mb-1">📄</p>
+                      <p class="text-xs text-ink-500">PDF导出</p>
+                    </div>
+                    <div class="bg-paper-50 rounded-lg p-3 text-center">
+                      <p class="text-2xl mb-1">⚡</p>
+                      <p class="text-xs text-ink-500">自动分块</p>
+                    </div>
+                  </div>
+                </div>
+              ` : ''}
+
+              ${(a.result || a.step === 'analyzing') ? `
+                <div class="bg-white rounded-2xl shadow-sm border border-paper-200 overflow-hidden">
+                  <div class="px-6 py-4 border-b border-paper-200 flex items-center justify-between">
+                    <h3 class="text-base font-semibold text-ink-800 font-serif">
+                      ${a.fileName ? `📖 ${a.fileName} - 拆书报告` : '📖 拆书报告'}
+                    </h3>
+                    ${a.step === 'analyzing' ? `
+                      <div class="flex items-center gap-1.5">
+                        <div class="loading-dot w-2 h-2 bg-tomato-500 rounded-full"></div>
+                        <span class="text-xs text-ink-400">AI 分析中...</span>
+                      </div>
+                    ` : ''}
+                  </div>
+
+                  <div id="report-output" class="report-content p-6 sm:p-8 max-h-[70vh] overflow-y-auto">
+                    ${a.result ? parseMd(a.result) : a.phase1 ? `
+                      <div class="space-y-4">
+                        ${a.phase1 ? `
+                          <div class="mb-6">
+                            <h2 class="text-sm font-semibold text-tomato-600 mb-2 flex items-center gap-2">
+                              ✅ 第一阶段：结构概览
+                            </h2>
+                            <div class="text-sm text-ink-700">${parseMd(a.phase1)}</div>
+                          </div>
+                        ` : ''}
+                        ${a.phase2 ? `
+                          <div class="mb-6">
+                            <h2 class="text-sm font-semibold text-tomato-600 mb-2 flex items-center gap-2">
+                              ${a.currentPhase === 'phase2' ? '⏳' : '✅'} 第二阶段：技法分析
+                            </h2>
+                            <div class="text-sm text-ink-700">${parseMd(a.phase2)}</div>
+                          </div>
+                        ` : ''}
+                        ${a.currentPhase === 'phase3' || a.currentPhase === '' ? `
+                          <div>
+                            <h2 class="text-sm font-semibold text-tomato-600 mb-2 flex items-center gap-2">
+                              ⏳ 第三阶段：综合报告...
+                            </h2>
+                            <p class="text-sm text-ink-400">正在生成最终综合报告...</p>
+                          </div>
+                        ` : ''}
+                      </div>
+                    ` : `
+                      <div class="flex items-center justify-center py-12">
+                        <div class="flex gap-1.5">
+                          <div class="loading-dot w-2.5 h-2.5 bg-tomato-500 rounded-full"></div>
+                          <div class="loading-dot w-2.5 h-2.5 bg-tomato-500 rounded-full"></div>
+                          <div class="loading-dot w-2.5 h-2.5 bg-tomato-500 rounded-full"></div>
+                        </div>
+                      </div>
+                    `}
+                  </div>
+
+                  ${a.reasoning && a.step === 'complete' ? `
+                    <details class="border-t border-paper-200">
+                      <summary class="px-6 py-3 text-sm text-ink-500 hover:bg-paper-50 cursor-pointer transition-colors">
+                        🧠 查看AI思考过程（${(a.reasoning.length / 1000).toFixed(1)}K字）
+                      </summary>
+                      <div class="px-6 py-4 bg-paper-50 text-sm text-ink-500 max-h-96 overflow-y-auto whitespace-pre-wrap leading-relaxed">${a.reasoning}</div>
+                    </details>
+                  ` : ''}
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==================== 设置页面 ====================
+    function renderSettingsTab() {
+      const s = state.settings;
+
+      return `
+        <div class="tab-content max-w-2xl mx-auto">
+          <div class="bg-white rounded-2xl shadow-sm border border-paper-200 p-8">
+            <h3 class="text-lg font-semibold text-ink-800 mb-6 flex items-center gap-2">
+              <span class="text-xl">⚙️</span> API 配置
+            </h3>
+
+            <div class="space-y-5">
+              <!-- API Key -->
+              <div>
+                <label class="block text-sm font-medium text-ink-700 mb-1.5">API Key</label>
+                <input type="password" id="input-api-key" value="${s.apiKey}"
+                  placeholder="sk-..."
+                  class="w-full px-4 py-2.5 bg-paper-50 border border-paper-300 rounded-xl text-sm focus:outline-none focus:border-tomato-400 focus:ring-2 focus:ring-tomato-100 transition-all" />
+                <p class="text-xs text-ink-400 mt-1">DeepSeek API Key，在 <a href="https://platform.deepseek.com/" target="_blank" class="text-tomato-500 hover:underline">platform.deepseek.com</a> 获取</p>
+              </div>
+
+              <!-- API Base URL -->
+              <div>
+                <label class="block text-sm font-medium text-ink-700 mb-1.5">API 地址</label>
+                <input type="text" id="input-base-url" value="${s.baseUrl}"
+                  placeholder="https://api.deepseek.com"
+                  class="w-full px-4 py-2.5 bg-paper-50 border border-paper-300 rounded-xl text-sm focus:outline-none focus:border-tomato-400 focus:ring-2 focus:ring-tomato-100 transition-all" />
+                <p class="text-xs text-ink-400 mt-1">默认为 DeepSeek 官方地址，如使用代理或兼容API可修改</p>
+              </div>
+
+              <!-- 模型选择 -->
+              <div>
+                <label class="block text-sm font-medium text-ink-700 mb-1.5">分析模型</label>
+                <div class="grid grid-cols-2 gap-3">
+                  <label class="relative cursor-pointer">
+                    <input type="radio" name="model" value="deepseek-reasoner" ${s.model === 'deepseek-reasoner' ? 'checked' : ''} class="peer sr-only" />
+                    <div class="p-4 rounded-xl border-2 ${s.model === 'deepseek-reasoner' ? 'border-tomato-500 bg-tomato-50' : 'border-paper-200 bg-paper-50 hover:border-paper-300'} transition-all">
+                      <p class="font-semibold text-sm text-ink-800">🧠 DeepSeek Reasoner</p>
+                      <p class="text-xs text-ink-500 mt-1">深度思考模式</p>
+                      <p class="text-xs text-tomato-600 mt-1 font-medium">推荐 · 分析更深入</p>
+                    </div>
+                  </label>
+                  <label class="relative cursor-pointer">
+                    <input type="radio" name="model" value="deepseek-chat" ${s.model === 'deepseek-chat' ? 'checked' : ''} class="peer sr-only" />
+                    <div class="p-4 rounded-xl border-2 ${s.model === 'deepseek-chat' ? 'border-tomato-500 bg-tomato-50' : 'border-paper-200 bg-paper-50 hover:border-paper-300'} transition-all">
+                      <p class="font-semibold text-sm text-ink-800">💬 DeepSeek Chat</p>
+                      <p class="text-xs text-ink-500 mt-1">标准对话模式</p>
+                      <p class="text-xs text-ink-400 mt-1">速度更快</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- 保存按钮 -->
+              <div class="pt-2">
+                <button id="btn-save-settings" class="w-full py-3 bg-tomato-500 hover:bg-tomato-600 text-white rounded-xl font-semibold text-sm shadow-lg shadow-tomato-200 transition-all">
+                  ${s.saved ? '✅ 已保存' : '💾 保存设置'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 使用说明 -->
+          <div class="bg-white rounded-2xl shadow-sm border border-paper-200 p-8 mt-6">
+            <h3 class="text-lg font-semibold text-ink-800 mb-4 flex items-center gap-2">
+              <span class="text-xl">📥</span> 导出排行榜数据
+            </h3>
+            <p class="text-sm text-ink-500 mb-5">将今日榜单数据导出为 TXT 文件（番茄数据自动修复字体乱码）</p>
+            <div class="space-y-4">
+              <!-- 平台选择 -->
+              <div class="grid grid-cols-2 gap-3">
+                <label class="relative cursor-pointer">
+                  <input type="radio" name="export-platform" value="fanqie" checked class="peer sr-only" />
+                  <div class="p-3 rounded-xl border-2 border-tomato-500 bg-tomato-50 peer-checked:border-tomato-500 peer-checked:bg-tomato-50 border-paper-200 bg-paper-50 transition-all">
+                    <p class="font-semibold text-sm text-ink-800">🍅 番茄小说</p>
+                  </div>
+                </label>
+                <label class="relative cursor-pointer">
+                  <input type="radio" name="export-platform" value="qidian" class="peer sr-only" />
+                  <div class="p-3 rounded-xl border-2 border-paper-200 bg-paper-50 peer-checked:border-tomato-500 peer-checked:bg-tomato-50 transition-all">
+                    <p class="font-semibold text-sm text-ink-800">📚 起点中文网</p>
+                  </div>
+                </label>
+              </div>
+
+              <!-- 番茄选项 -->
+              <div id="export-fanqie-opts" class="space-y-3">
+                <div>
+                  <label class="block text-sm font-medium text-ink-700 mb-1.5">性别频道</label>
+                  <div class="grid grid-cols-2 gap-3">
+                    <label class="relative cursor-pointer">
+                      <input type="radio" name="export-gender" value="male" checked class="peer sr-only" />
+                      <div class="px-3 py-2 rounded-xl border-2 border-paper-200 bg-paper-50 peer-checked:border-blue-400 peer-checked:bg-blue-50 transition-all text-sm text-center font-medium">男频</div>
+                    </label>
+                    <label class="relative cursor-pointer">
+                      <input type="radio" name="export-gender" value="female" class="peer sr-only" />
+                      <div class="px-3 py-2 rounded-xl border-2 border-paper-200 bg-paper-50 peer-checked:border-pink-400 peer-checked:bg-pink-50 transition-all text-sm text-center font-medium">女频</div>
+                    </label>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-ink-700 mb-1.5">榜单类型</label>
+                  <div class="grid grid-cols-2 gap-3">
+                    <label class="relative cursor-pointer">
+                      <input type="radio" name="export-type-fanqie" value="read" checked class="peer sr-only" />
+                      <div class="px-3 py-2 rounded-xl border-2 border-paper-200 bg-paper-50 peer-checked:border-tomato-500 peer-checked:bg-tomato-50 transition-all text-sm text-center font-medium">在读榜</div>
+                    </label>
+                    <label class="relative cursor-pointer">
+                      <input type="radio" name="export-type-fanqie" value="new" class="peer sr-only" />
+                      <div class="px-3 py-2 rounded-xl border-2 border-paper-200 bg-paper-50 peer-checked:border-tomato-500 peer-checked:bg-tomato-50 transition-all text-sm text-center font-medium">新书榜</div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 起点选项 -->
+              <div id="export-qidian-opts" class="space-y-3 hidden">
+                <div>
+                  <label class="block text-sm font-medium text-ink-700 mb-1.5">榜单类型</label>
+                  <div class="grid grid-cols-3 gap-3">
+                    <label class="relative cursor-pointer">
+                      <input type="radio" name="export-type-qidian" value="hotsales" checked class="peer sr-only" />
+                      <div class="px-2 py-2 rounded-xl border-2 border-paper-200 bg-paper-50 peer-checked:border-tomato-500 peer-checked:bg-tomato-50 transition-all text-sm text-center font-medium">畅销榜</div>
+                    </label>
+                    <label class="relative cursor-pointer">
+                      <input type="radio" name="export-type-qidian" value="monthly" class="peer sr-only" />
+                      <div class="px-2 py-2 rounded-xl border-2 border-paper-200 bg-paper-50 peer-checked:border-tomato-500 peer-checked:bg-tomato-50 transition-all text-sm text-center font-medium">月票榜</div>
+                    </label>
+                    <label class="relative cursor-pointer">
+                      <input type="radio" name="export-type-qidian" value="newbook" class="peer sr-only" />
+                      <div class="px-2 py-2 rounded-xl border-2 border-paper-200 bg-paper-50 peer-checked:border-tomato-500 peer-checked:bg-tomato-50 transition-all text-sm text-center font-medium">新书榜</div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 导出按钮 -->
+              <button id="btn-export-ranking" class="w-full py-3 bg-ink-800 hover:bg-ink-900 text-white rounded-xl font-semibold text-sm shadow-lg transition-all flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                导出 TXT 文件
+              </button>
+              <p id="export-status" class="text-xs text-center text-ink-400 hidden"></p>
+            </div>
+          </div>
+
+          <!-- 使用说明 -->
+          <div class="bg-white rounded-2xl shadow-sm border border-paper-200 p-8 mt-6">
+            <h3 class="text-lg font-semibold text-ink-800 mb-4 flex items-center gap-2">
+              <span class="text-xl">📖</span> 使用说明
+            </h3>
+            <div class="space-y-4 text-sm text-ink-600">
+              <div class="flex gap-3">
+                <span class="flex-shrink-0 w-6 h-6 bg-tomato-100 text-tomato-700 rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                <p>在「设置」页面填入你的 DeepSeek API Key</p>
+              </div>
+              <div class="flex gap-3">
+                <span class="flex-shrink-0 w-6 h-6 bg-tomato-100 text-tomato-700 rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                <p>在「扫榜」页面浏览起点和番茄小说的排行榜，了解市场</p>
+              </div>
+              <div class="flex gap-3">
+                <span class="flex-shrink-0 w-6 h-6 bg-tomato-100 text-tomato-700 rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                <p>在「拆书」页面上传小说 TXT 文件</p>
+              </div>
+              <div class="flex gap-3">
+                <span class="flex-shrink-0 w-6 h-6 bg-tomato-100 text-tomato-700 rounded-full flex items-center justify-center text-xs font-bold">4</span>
+                <p>选择分析模块，点击「开始拆书分析」</p>
+              </div>
+              <div class="flex gap-3">
+                <span class="flex-shrink-0 w-6 h-6 bg-tomato-100 text-tomato-700 rounded-full flex items-center justify-center text-xs font-bold">5</span>
+                <p>等待 AI 完成三阶段分析，查看报告或导出 PDF</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==================== 工具函数 ====================
+    function formatSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    // ==================== 事件绑定 ====================
+    function bindEvents() {
+      // ---- 暗黑模式 ----
+      var darkMode = localStorage.getItem('iworks-dark') === 'true';
+      function applyDarkMode(isDark) {
+        document.documentElement.classList.toggle('dark', isDark);
+        document.querySelectorAll('.dark-icon-sun, .dark-icon-sun-sub').forEach(function(el) { el.classList.toggle('hidden', !isDark); });
+        document.querySelectorAll('.dark-icon-moon, .dark-icon-moon-sub').forEach(function(el) { el.classList.toggle('hidden', isDark); });
+      }
+      applyDarkMode(darkMode);
+      function toggleDark() {
+        darkMode = !darkMode;
+        localStorage.setItem('iworks-dark', darkMode);
+        applyDarkMode(darkMode);
+      }
+      document.addEventListener('click', function(e) {
+        var btn = e.target.closest('#dark-toggle, #dark-toggle-sub');
+        if (btn) { e.preventDefault(); toggleDark(); }
+      });
+
+      // 首页：行星轨道 → 归位动画（仅首次进入时播放）
+      if (state.activeTab === 'home' && !state.heroAnimPlayed) {
+        state.heroAnimPlayed = true;
+        requestAnimationFrame(function() {
+          var lettersContainer = document.getElementById('hero-letters');
+          if (!lettersContainer) return;
+
+          var brandChars = ['i', 'W', 'o', 'r', 'k', 's'];
+          var letterStyles = [
+            'text-6xl sm:text-8xl text-ink-900 italic brand-letter-i font-semibold',
+            'text-6xl sm:text-8xl text-transparent bg-clip-text bg-gradient-to-r from-tomato-500 to-tomato-400 font-bold hero-sun-glow',
+            'text-6xl sm:text-8xl text-ink-900',
+            'text-6xl sm:text-8xl text-ink-900',
+            'text-6xl sm:text-8xl text-ink-900',
+            'text-6xl sm:text-8xl text-ink-900'
+          ];
+
+
+          var isMobile = window.innerWidth < 640;
+          var sc = isMobile ? 0.5 : 1;
+
+          // 创建字母（flex 布局，自然排列，opacity:0 不可见）
+          var letterEls = [];
+          for (var li = 0; li < 6; li++) {
+            var span = document.createElement('span');
+            span.className = 'hero-individual-letter tracking-tight ' + letterStyles[li];
+            span.textContent = brandChars[li];
+            if (li === 1) {
+              span.style.opacity = '1';
+              span.classList.add('hero-sun-glow');
+            }
+            lettersContainer.appendChild(span);
+            letterEls.push(span);
+          }
+
+          // 测量每个字母中心相对 W 中心的偏移（home = 最终自然位置）
+          var wRect = letterEls[1].getBoundingClientRect();
+          var wCx = wRect.left + wRect.width / 2;
+          var wCy = wRect.top + wRect.height / 2;
+          var homeOffsets = [];
+          for (var hi = 0; hi < 6; hi++) {
+            var hr = letterEls[hi].getBoundingClientRect();
+            homeOffsets.push({
+              x: hr.left + hr.width / 2 - wCx,
+              y: hr.top + hr.height / 2 - wCy
+            });
+          }
+
+          // 轨道配置：每个字母独立的延迟、总旋转角度
+          // 轨道半径统一，顺时针从 W 左侧出发
+          var orbitR = 120 * sc;
+          var startAngle = Math.PI; // 从 W 左侧出发
+          var letterTiming = [
+            null,                    // idx 0: i
+            null,                    // idx 1: W（不动）
+            null,                    // idx 2: o
+            null,                    // idx 3: r
+            null,                    // idx 4: k
+            null                     // idx 5: s
+          ];
+          // i: 绕一圈(2π)，delay 0ms
+          letterTiming[0] = { delay: 0,    totalAngle: Math.PI * 2,   orbitMs: 2000, settleMs: 800 };
+          // o: 绕一圈多(2.5π)，从左侧经过后从下方回到位置，delay 500ms，转快
+          letterTiming[2] = { delay: 500,  totalAngle: Math.PI * 2.5, orbitMs: 1800, settleMs: 800 };
+          // r: delay 1000ms
+          letterTiming[3] = { delay: 1000, totalAngle: Math.PI * 2.5, orbitMs: 1800, settleMs: 800 };
+          // k: delay 1500ms
+          letterTiming[4] = { delay: 1500, totalAngle: Math.PI * 2.5, orbitMs: 1800, settleMs: 800 };
+          // s: delay 2000ms
+          letterTiming[5] = { delay: 2000, totalAngle: Math.PI * 2.5, orbitMs: 1800, settleMs: 800 };
+
+          var startTime = null;
+          var allDone = false;
+          var skipped = false;
+
+          // 点击跳过动画
+          function skipAnimation() {
+            if (skipped || allDone) return;
+            skipped = true;
+            document.querySelectorAll('.hero-individual-letter').forEach(function(el, idx) {
+              el.style.transition = 'all 0.3s ease-out';
+              el.style.opacity = '1';
+              el.style.transform = 'none';
+              if (!el.classList.contains('floating')) {
+                el.classList.add('floating');
+                el.style.animationDelay = (idx * 200) + 'ms';
+              }
+            });
+            document.querySelectorAll('.hero-scale').forEach(function(el) {
+              el.style.animation = 'none';
+              el.style.opacity = '1';
+              el.style.transform = 'scale(1)';
+            });
+            // W的太阳光晕也立即显示
+            document.querySelectorAll('[style*="hero-glow"]').forEach(function(el) {
+              el.style.opacity = '0.5';
+            });
+          }
+          document.addEventListener('click', skipAnimation, { once: true });
+
+          function animate(now) {
+            if (skipped) return;
+            if (!startTime) startTime = now;
+            var elapsed = now - startTime;
+
+            allDone = true;
+
+            for (var idx = 0; idx < 6; idx++) {
+              if (idx === 1) continue; // W 不动
+              var el = letterEls[idx];
+              var timing = letterTiming[idx];
+              var home = homeOffsets[idx];
+              var localTime = elapsed - timing.delay;
+
+              if (localTime < 0) {
+                // 还没到出场时间
+                allDone = false;
+                continue;
+              }
+
+              var orbitTime = localTime - timing.orbitMs;
+
+              if (orbitTime < 0) {
+                // 轨道阶段
+                allDone = false;
+                var progress = localTime / timing.orbitMs; // 0 → 1
+                var fadeIn = Math.min(localTime / 300, 1);
+                el.style.opacity = fadeIn;
+                // 顺时针：角度递减（屏幕坐标 Y 朝下）
+                var angle = startAngle - progress * timing.totalAngle;
+                var ox = Math.cos(angle) * orbitR;
+                var oy = Math.sin(angle) * orbitR;
+                // translate = 轨道位置 - home位置
+                var tx = ox - home.x;
+                var ty = oy - home.y;
+                el.style.transform = 'translate(' + tx + 'px,' + ty + 'px)';
+              } else if (orbitTime < timing.settleMs) {
+                // 归位阶段：从轨道终点 → home（translate → 0）
+                allDone = false;
+                var t = orbitTime / timing.settleMs;
+                t = 1 - Math.pow(1 - t, 3); // ease-out
+                // 轨道终点位置
+                var endAngle = startAngle - timing.totalAngle;
+                var eox = Math.cos(endAngle) * orbitR;
+                var eoy = Math.sin(endAngle) * orbitR;
+                // 从轨道终点插值到 home（translate 归零）
+                var tx = (eox - home.x) * (1 - t);
+                var ty = (eoy - home.y) * (1 - t);
+                el.style.transform = 'translate(' + tx + 'px,' + ty + 'px)';
+              } else {
+                // 完成：清除 transform，回到 flex 自然位置
+                el.style.transform = 'none';
+                el.style.opacity = '1';
+                if (!el.classList.contains('floating')) {
+                  el.classList.add('floating');
+                  el.style.animationDelay = (idx * 200) + 'ms';
+                }
+              }
+            }
+
+            if (!allDone) {
+              requestAnimationFrame(animate);
+            } else {
+              // 全部完成
+            }
+          }
+
+          requestAnimationFrame(animate);
+        });
+      }
+      // 标签页切换（统一处理首页卡片、返回按钮、子页面tab）
+      document.querySelectorAll('[data-tab]').forEach(el => {
+        el.addEventListener('click', (e) => {
+          e.preventDefault();
+          const tab = el.dataset.tab;
+          if (tab === state.activeTab) return;
+          state.activeTab = tab;
+          if (tab === 'market' && !state.rank.data) {
+            state.rank.loading = true;
+            loadFanqieCategories();
+            loadHistoricalDates();
+            loadRankings();
+          } else if (tab === 'market') {
+            if (!state.rank.historicalDates.length) loadHistoricalDates();
+          }
+          render();
+        });
+      });
+
+      // 平台切换
+      document.querySelectorAll('.platform-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.rank.platform = btn.dataset.platform;
+          state.rank.type = RANK_TYPES[btn.dataset.platform][0].value;
+          state.rank.searchFilter = '';
+          state.rank.category = '';
+          if (btn.dataset.platform === 'fanqie') {
+            loadFanqieCategories(); // 并行加载分类，不阻塞
+            loadRankings();
+          } else {
+            loadRankings();
+          }
+        });
+      });
+
+      // 排行类型切换
+      document.querySelectorAll('.rank-type-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.rank.type = btn.dataset.rankType;
+          state.rank.category = '';
+          state.rank.displayLimit = 60;
+          loadRankings();
+        });
+      });
+
+
+      // 分类选择按钮
+      document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.rank.category = btn.dataset.category || '';
+          state.rank.displayLimit = 60;
+          render();
+          // 分类切换后，从后端加载该分类的词云数据
+          requestAnimationFrame(() => {
+            switchWordCloudCategory(state.rank.category);
+            if (_wordCloudData) initWordCloud();
+          });
+        });
+      });
+
+      // 诊断器展开/收起
+      const diagToggle = document.getElementById('diag-toggle');
+      if (diagToggle) {
+        diagToggle.addEventListener('click', () => {
+          state.diagnosticExpanded = !state.diagnosticExpanded;
+          render();
+        });
+      }
+
+
+      // 显示更多按钮
+      const loadMoreBtn = document.getElementById('btn-load-more');
+      if (loadMoreBtn) loadMoreBtn.addEventListener('click', () => {
+        state.rank.displayLimit = (state.rank.displayLimit || 60) + 60;
+        render();
+      });
+
+      // ESC 关闭书籍详情面板
+      if (state.bookDetail) {
+        const escHandler = (e) => {
+          if (e.key === 'Escape') {
+            closeBookDetail();
+            document.removeEventListener('keydown', escHandler);
+          }
+        };
+        document.addEventListener('keydown', escHandler);
+      }
+
+      // 搜索过滤
+      const searchInput = document.getElementById('rank-search');
+      if (searchInput) {
+        let debounce;
+        searchInput.addEventListener('input', (e) => {
+          clearTimeout(debounce);
+          debounce = setTimeout(() => {
+            state.rank.searchFilter = e.target.value;
+            render();
+          }, 300);
+        });
+      }
+
+      // 刷新
+      const refreshBtn = document.getElementById('btn-refresh');
+      if (refreshBtn) refreshBtn.addEventListener('click', refreshRankings);
+
+      // 总览模式切换 / 返回榜单
+      const overviewBtn = document.getElementById('btn-toggle-overview');
+      if (overviewBtn) overviewBtn.addEventListener('click', toggleOverview);
+      const backBtn = document.getElementById('btn-back-to-rank');
+      if (backBtn) backBtn.addEventListener('click', () => { state.rank.overviewMode = false; render(); });
+
+      // 视图模式切换
+      const gridBtn = document.getElementById('btn-view-grid');
+      const listBtn = document.getElementById('btn-view-list');
+      if (gridBtn) gridBtn.addEventListener('click', () => { state.rank.viewMode = 'grid'; render(); });
+      if (listBtn) listBtn.addEventListener('click', () => { state.rank.viewMode = 'list'; render(); });
+
+
+      // 导出CSV
+      const csvBtn = document.getElementById('btn-export-csv');
+      if (csvBtn) csvBtn.addEventListener('click', exportRankCSV);
+
+      // 文件上传
+      const dropZone = document.getElementById('drop-zone');
+      const fileInput = document.getElementById('file-input');
+
+      if (dropZone && fileInput) {
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => handleFileUpload(e.target.files[0]));
+
+        dropZone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          dropZone.classList.add('drag-over');
+        });
+        dropZone.addEventListener('dragleave', () => {
+          dropZone.classList.remove('drag-over');
+        });
+        dropZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          dropZone.classList.remove('drag-over');
+          handleFileUpload(e.dataTransfer.files[0]);
+        });
+      }
+
+      // 分析模块复选框
+      document.querySelectorAll('[data-module]').forEach(cb => {
+        cb.addEventListener('change', (e) => {
+          state.analyze.modules[e.target.dataset.module] = e.target.checked;
+        });
+      });
+
+      // 开始分析
+      const startBtn = document.getElementById('btn-start-analysis');
+      if (startBtn) startBtn.addEventListener('click', startAnalysis);
+
+      // 停止分析
+      const stopBtn = document.getElementById('btn-stop-analysis');
+      if (stopBtn) stopBtn.addEventListener('click', stopAnalysis);
+
+      // 重试
+      const retryBtn = document.getElementById('btn-retry');
+      if (retryBtn) retryBtn.addEventListener('click', startAnalysis);
+
+      // 新分析
+      const newBtn = document.getElementById('btn-new-analysis');
+      if (newBtn) newBtn.addEventListener('click', () => {
+        state.analyze = {
+          fileName: '', fileSize: 0, chapters: 0, fileContent: '',
+          step: 'idle', progress: 0, message: '', currentPhase: '',
+          taskId: null, result: '', reasoning: '', stats: {},
+          modules: state.analyze.modules,
+          phase1: '', phase2: '',
+        };
+        render();
+      });
+
+      // 导出PDF
+      const pdfBtn = document.getElementById('btn-export-pdf');
+      if (pdfBtn) pdfBtn.addEventListener('click', exportPDF);
+
+      // 设置保存
+      const saveBtn = document.getElementById('btn-save-settings');
+      if (saveBtn) saveBtn.addEventListener('click', saveSettings);
+
+      // 设置输入
+      const apiKeyInput = document.getElementById('input-api-key');
+      if (apiKeyInput) apiKeyInput.addEventListener('input', (e) => { state.settings.apiKey = e.target.value; });
+
+      const baseUrlInput = document.getElementById('input-base-url');
+      if (baseUrlInput) baseUrlInput.addEventListener('input', (e) => { state.settings.baseUrl = e.target.value; });
+
+      // 模型选择
+      document.querySelectorAll('input[name="model"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+          state.settings.model = e.target.value;
+          render();
+        });
+      });
+
+      // 导出排行榜数据
+      const exportBtn = document.getElementById('btn-export-ranking');
+      const exportStatus = document.getElementById('export-status');
+      const fanqieOpts = document.getElementById('export-fanqie-opts');
+      const qidianOpts = document.getElementById('export-qidian-opts');
+
+      // 平台切换：显示/隐藏对应选项
+      document.querySelectorAll('input[name="export-platform"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+          const isFanqie = e.target.value === 'fanqie';
+          if (fanqieOpts) fanqieOpts.classList.toggle('hidden', !isFanqie);
+          if (qidianOpts) qidianOpts.classList.toggle('hidden', isFanqie);
+        });
+      });
+
+      if (exportBtn) {
+        exportBtn.addEventListener('click', async () => {
+          const platform = document.querySelector('input[name="export-platform"]:checked')?.value || 'fanqie';
+          const gender = document.querySelector('input[name="export-gender"]:checked')?.value || 'male';
+          const fanqieType = document.querySelector('input[name="export-type-fanqie"]:checked')?.value || 'read';
+          const qidianType = document.querySelector('input[name="export-type-qidian"]:checked')?.value || 'hotsales';
+          const rankType = platform === 'fanqie' ? fanqieType : qidianType;
+
+          exportBtn.disabled = true;
+          exportBtn.textContent = '导出中...';
+          if (exportStatus) { exportStatus.classList.remove('hidden'); exportStatus.textContent = '正在下载字体并生成文件...'; }
+
+          try {
+            const params = new URLSearchParams({ platform, type: rankType, gender });
+            const resp = await fetch(`/api/rankings/export?${params}`);
+            if (!resp.ok) {
+              const err = await resp.json().catch(() => ({}));
+              throw new Error(err.error || `HTTP ${resp.status}`);
+            }
+            const blob = await resp.blob();
+            // 从 Content-Disposition 提取文件名
+            const cd = resp.headers.get('Content-Disposition') || '';
+            const match = cd.match(/filename\*=UTF-8''(.+)/);
+            const filename = match ? decodeURIComponent(match[1]) : `排行榜_${platform}_${rankType}.txt`;
+
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(a.href);
+
+            if (exportStatus) { exportStatus.textContent = '✅ 导出成功'; exportStatus.className = 'text-xs text-center text-green-600'; }
+            showToast('TXT 文件已下载', 'success');
+          } catch (e) {
+            if (exportStatus) { exportStatus.textContent = `❌ ${e.message}`; exportStatus.className = 'text-xs text-center text-red-500'; }
+            showToast(`导出失败: ${e.message}`, 'error');
+          } finally {
+            exportBtn.disabled = false;
+            exportBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg> 导出 TXT 文件';
+            setTimeout(() => {
+              if (exportStatus) { exportStatus.classList.add('hidden'); exportStatus.className = 'text-xs text-center text-ink-400 hidden'; }
+            }, 5000);
+          }
+        });
+      }
+    }
+
+    // ==================== 初始化 ====================
+    console.log('[toolkit] initializing render...');
+    try {
+      render();
+      console.log('[toolkit] render() succeeded');
+    } catch(e) {
+      console.error('[toolkit] render() failed:', e);
+    }
+
+    // 自动加载（首页不需要预加载数据，进入子页面时按需加载）
+    if (state.activeTab !== 'home') {
+      if (state.activeTab === 'market') {
+        state.rank.loading = true;
+        loadFanqieCategories();
+        render();
+        loadRankings();
+      } else {
+        render();
+      }
+    }
+  </script>
+</body>
+</html>
