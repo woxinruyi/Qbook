@@ -11,6 +11,9 @@ __pycache__/
 .venv/
 venv/
 
+# 编译产物（exe 通过 GitHub Release 发布）
+*.exe
+
 # PyInstaller 构建产物
 build/
 dist/

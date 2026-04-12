@@ -331,6 +331,28 @@
     .toast.error { border-left: 4px solid #e53e3e; }
     .toast.success { border-left: 4px solid #38a169; }
     .toast.info { border-left: 4px solid #ff5722; }
+
+    /* 错误日志提示横幅 */
+    .error-log-banner {
+      position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 999;
+      max-width: 380px; padding: 1rem 1.25rem;
+      background: linear-gradient(135deg, #fef2f2, #fff5f5);
+      border: 1px solid #fecaca; border-radius: 16px;
+      box-shadow: 0 10px 40px -10px rgba(239,68,68,0.25);
+      animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .error-log-banner .banner-close {
+      position: absolute; top: 0.5rem; right: 0.75rem;
+      width: 24px; height: 24px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #9ca3af; cursor: pointer; transition: all 0.2s;
+      border: none; background: none; font-size: 16px; line-height: 1;
+    }
+    .error-log-banner .banner-close:hover { color: #374151; background: #f3f4f6; }
   </style>
 </head>
 <body>
@@ -416,6 +438,78 @@
     // 番茄小说分类缓存
     let fanqieCategories = [];
     let fanqieCategoriesLoaded = false;
+
+    // ==================== 错误日志系统 ====================
+    let _errorBannerDismissed = false;
+    let _errorCount = 0;
+
+    function reportError(type, message, source, stack) {
+      _errorCount++;
+      // 异步发送到后端，不影响用户体验
+      fetch('/api/error-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, message, source, stack }),
+      }).catch(() => {});
+
+      // 显示提示横幅（仅第一次，且未被关闭过）
+      if (!_errorBannerDismissed && _errorCount === 1) {
+        showErrorBanner();
+      }
+    }
+
+    function showErrorBanner() {
+      // 移除已有的横幅
+      const old = document.getElementById('error-log-banner');
+      if (old) old.remove();
+
+      const banner = document.createElement('div');
+      banner.id = 'error-log-banner';
+      banner.className = 'error-log-banner';
+      banner.innerHTML = `
+        <button class="banner-close" onclick="dismissErrorBanner()">&times;</button>
+        <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+          <div style="flex-shrink:0;width:36px;height:36px;border-radius:10px;background:#fee2e2;display:flex;align-items:center;justify-content:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <p style="font-size:13px;font-weight:600;color:#991b1b;margin:0 0 4px 0;">程序遇到了问题</p>
+            <p style="font-size:12px;color:#b91c1c;margin:0 0 10px 0;line-height:1.5;">
+              请将程序目录下 <code style="background:#fecaca;padding:1px 5px;border-radius:4px;font-size:11px;">logs/error.log</code> 文件发给开发者，以便排查问题。
+            </p>
+            <button onclick="dismissErrorBanner()" style="
+              padding:5px 14px;border-radius:8px;border:none;
+              background:#dc2626;color:white;font-size:12px;font-weight:500;
+              cursor:pointer;transition:background 0.2s;
+            " onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">我知道了</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(banner);
+    }
+
+    function dismissErrorBanner() {
+      _errorBannerDismissed = true;
+      const banner = document.getElementById('error-log-banner');
+      if (banner) {
+        banner.style.opacity = '0';
+        banner.style.transform = 'translateY(20px)';
+        banner.style.transition = 'all 0.3s ease';
+        setTimeout(() => banner.remove(), 300);
+      }
+    }
+
+    // 全局 JS 错误捕获
+    window.onerror = function(msg, source, lineno, colno, error) {
+      reportError('js_error', String(msg).substring(0, 200), source ? `${source}:${lineno}:${colno}` : '', error && error.stack ? error.stack.substring(0, 500) : '');
+      return false; // 不阻止默认处理
+    };
+
+    // Promise 未捕获 rejection
+    window.addEventListener('unhandledrejection', function(e) {
+      const reason = e.reason;
+      reportError('promise_error', reason && reason.message ? reason.message.substring(0, 200) : String(reason).substring(0, 200), '', reason && reason.stack ? reason.stack.substring(0, 500) : '');
+    });
 
     // ==================== API 调用 ====================
     async function apiGet(path) {
@@ -538,6 +632,7 @@
         }
       } catch (e) {
         state.rank.error = `加载失败: ${e.message}`;
+        reportError('api_error', `加载排行榜失败: ${e.message}`, `/api/rankings/...`, '');
       }
 
       state.rank.loading = false;
@@ -1332,7 +1427,8 @@
             </div>
           </a>
 
-          <a data-tab="analyze" class="${state.heroAnimPlayed ? '' : 'hero-scale'} home-card group block bg-white rounded-xl border border-paper-200 p-4 hover:border-tomato-200 hover:shadow-lg hover:shadow-tomato-100/50 transition-all duration-300 cursor-pointer"${state.heroAnimPlayed ? '' : ' style="animation-delay:3750ms"'}>
+          <a data-tab="analyze" class="${state.heroAnimPlayed ? '' : 'hero-scale'} home-card group block bg-white rounded-xl border border-paper-200 p-4 hover:border-tomato-200 hover:shadow-lg hover:shadow-tomato-100/50 transition-all duration-300 cursor-pointer relative"${state.heroAnimPlayed ? '' : ' style="animation-delay:3750ms"'}>
+            <span class="absolute top-2 right-2 text-[10px] font-medium bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">开发中</span>
             <div class="flex items-center gap-3">
               <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
                 <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
@@ -3044,6 +3140,11 @@
           e.preventDefault();
           const tab = el.dataset.tab;
           if (tab === state.activeTab) return;
+          // 拆书功能暂未开放
+          if (tab === 'analyze') {
+            showToast('智能拆书功能正在开发中，敬请期待！', 'info');
+            return;
+          }
           state.activeTab = tab;
           if (tab === 'market' && !state.rank.data) {
             state.rank.loading = true;

@@ -44,6 +44,7 @@ DAILY_DIR = BASE_DIR / 'snapshots' / 'daily'
 DAILY_DIR.mkdir(parents=True, exist_ok=True)
 LOG_DIR = BASE_DIR / 'logs'
 LOG_DIR.mkdir(exist_ok=True)
+ERROR_LOG_FILE = LOG_DIR / 'error.log'
 
 # ==================== 全局状态 ====================
 analysis_tasks = {}      # task_id -> {status, progress, message, result, reasoning}
@@ -2340,6 +2341,30 @@ class ToolkitHandler(BaseHTTPRequestHandler):
                     self.send_json({'error': str(e)}, 500)
                 except Exception:
                     pass  # 客户端已断开，忽略
+
+        elif path == '/api/error-log':
+            """接收前端错误日志，追加到 error.log"""
+            try:
+                body = json.loads(self.read_body())
+                error_type = body.get('type', 'unknown')
+                message = body.get('message', '')
+                source = body.get('source', '')
+                stack = body.get('stack', '')
+                timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
+
+                log_line = f"[{timestamp}] [{error_type}] {message}"
+                if source:
+                    log_line += f"  ({source})"
+                if stack:
+                    log_line += f"\n  {stack.replace(chr(10), chr(10) + '  ')}"
+                log_line += '\n'
+
+                with open(ERROR_LOG_FILE, 'a', encoding='utf-8', errors='replace') as f:
+                    f.write(log_line)
+
+                self.send_json({'message': 'logged'})
+            except Exception:
+                self.send_json({'message': 'ok'})
 
         elif path == '/api/rankings/refresh':
             # 清除缓存并重新抓取
