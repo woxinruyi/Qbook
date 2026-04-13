@@ -2,7 +2,7 @@
 #define MyAppVersion "1.4.1"
 #define MyAppPublisher "iWorks"
 #define MyAppExeName "iWorks.exe"
-#define MyAppURL "https://github.com/3421013896/Qbook"
+#define MyAppURL "https://github.com/QiuNova/Qbook"
 
 [Setup]
 AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}}
@@ -36,7 +36,7 @@ chinesesimplified.CreateDesktop=创建桌面快捷方式
 Name: "desktopicon"; Description: "创建桌面快捷方式"
 
 [Files]
-Source: "iWorks.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\iWorks\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\iWorks"; Filename: "{app}\{#MyAppExeName}"
